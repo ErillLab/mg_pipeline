@@ -7,6 +7,7 @@ Created on Tue Feb 10 01:05:51 2015
 @author: Talmo
 """
 from Metagenome import Metagenome
+from PSSMScorer import PSSMScorer
 
 # Metagenomes
 metagenomes = []
@@ -40,11 +41,49 @@ metagenomes.append('mgm4441137.3') # 5-Way (CG) Acid Mine Drainage Biofilm
 metagenomes.append('mgm4441138.3') # UBA Acid Mine Drainage Biofilm
 
 
-# Process metagenome
-#mg = Metagenome(metagenomes[3])
-#mg.process()
-
+#%% Process metagenomes
 for mg_id in metagenomes:
     mg = Metagenome(mg_id)
     mg.process()
+
+#%% Gene and NOG counts
+n_genes = {}; n_NOGs = {}
+for mg_id in metagenomes:
+    mg = Metagenome(mg_id, verbosity=0)
+    if mg.check_path('eggnog_blast'):
+        mg.load_NOGs()
+        print mg
+        print "  Genes: %d / NOGs: %d" % (mg.NOGs.gene.nunique(), mg.NOGs.nog.nunique())
+        n_genes[mg_id] = mg.NOGs.gene.nunique()
+        n_NOGs[mg_id] = mg.NOGs.nog.nunique()
     
+#%% Count TF NOGs
+NOGs = ["COG0468", "COG1974"]
+
+NOG_counts = {NOG: {} for NOG in NOGs}
+for mg_id in metagenomes:
+    mg = Metagenome(mg_id, verbosity=0)
+    if mg.check_path('eggnog_blast'):
+        mg.load_NOGs()
+        print mg
+        for NOG in NOGs:
+            n = sum(mg.NOGs.nog == NOG)
+            print "  %s: %d" % (NOG, n)
+            NOG_counts[NOG][mg.id] = n
+
+#%% PSSM scores
+lexA_COG = "COG1974"
+
+# Create PSSM
+base_path = "E:\\metagenomics\\binding_sites\\"
+# "lexA.Actinobacteria.txt"
+sites = {"lexA": base_path + "lexA.Alphaproteobacteria.txt"}
+lexA = PSSMScorer(sites["lexA"])
+
+# Score sites
+#mg = Metagenome("mgm4491401.3")
+#mg.process()
+# Get COG genes
+# Get corresponding operons
+# Get promoter region for those operons
+# Score

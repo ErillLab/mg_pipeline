@@ -31,11 +31,10 @@ metagenomes_path = "E:\\metagenomics\\metagenomes"
 eggnog_db_path = "E:\\eggNOG\\blast_db\\eggnogv4"
 
 # Path to eggNOG reference tables
+#eggnog_NOG_members_path = "E:\\eggNOG\\all.members\\aproNOG.members.txt"
+#eggnog_NOG_funccat_path = "E:\\eggNOG\\all.funccat\\aproNOG.funccat.txt"
 eggnog_NOG_members_path = "E:\\eggNOG\\NOG.members.txt"
 eggnog_NOG_funccat_path = "E:\\eggNOG\\NOG.funccat.txt"
-eggnog_bactNOG_members_path = "E:\\eggNOG\\all.members\\bactNOG.members.txt"
-eggnog_bactNOG_funccat_path = "E:\\eggNOG\\all.funccat\\bactNOG.funccat.txt"
-
 
 """ Static methods """
 def get_paths(mg_id):
@@ -54,6 +53,7 @@ def get_paths(mg_id):
     
     paths["hits"] = paths["base"] + "\\hits.csv"
     paths["operons"] = paths["base"] + "\\operons.csv"
+    paths["NOGs"] = paths["base"] + "\\NOGs.csv"
     
     # Make paths absolute
     for key, value in paths.items():
@@ -76,13 +76,21 @@ class Metagenome:
         self.genes = None # 350 -> load_genes()
         self.hits = None # 650 -> load_hits()
         self.operons = None # predict_operons()
+        self.NOGs = None # parse_eggnog_blast()
         
+        #TODO: Create a stats Series
         self.n_scaffolds = None
         self.n_hits = None
         self.n_operons = None
         
-        print "Initialized metagenome: " + self.mg_id
+        if self.verbosity > 0:
+            print "Initialized metagenome: " + self.mg_id
+            
         self.load_metadata()
+        
+    def __repr__(self):
+        """ Provides a string representation of the class. """
+        return "[ID: %s] %s - %s" % (self.id, self.project, self.name)
         
     def check_path(self, what):
         """ Checks if the specified metagenome file exists. """
@@ -110,7 +118,7 @@ class Metagenome:
 
         # Parse out basic info about metagenome
         self.name = self.metadata["name"]
-        self.project = self.metadata["project"][0]
+        self.project = self.metadata["metadata"]["project"]["name"]
         
         if self.verbosity > 0:
             print " -- Name: " + self.name
@@ -184,7 +192,7 @@ class Metagenome:
         #blat = blat[blat.query_id.str.contains('scaffold')] # only rows containing scaffold
         blat = blat[~blat.query_id.str.contains('aa')] # only rows not starting with aa
         
-        if self.verbosity > 0:        
+        if self.verbosity > 0:
             print 'BLAT loaded. [%.2fs]' % (clock() - t)
             print 'Parsing BLAT hits...'; t = clock()
             
@@ -428,7 +436,7 @@ class Metagenome:
         This can be used as input for BLASTing.
         
         Format of operon_hits.faa is:
-            >operon_id
+            >hit_id
             AA_SEQ
             ...
         """
@@ -489,46 +497,51 @@ class Metagenome:
         # Check if BLAST output exists
         if not self.check_path('eggnog_blast'):
             print 'BLAST file does not exist: ' + self.paths['eggnog_blast']
+            print 'You can BLAST using the .blast_eggnog() function.'
             return
         
-        # Read in BLAST output into dataframe
-        blast_cols = ['query_id', 'hit_id', 'percentage_identity', 'alignment_length', 'num_mismatches', 'num_gap_openings', 'q.start', 'q.end', 's.start', 's.end', 'e_value', 'score_bits']
-        blast = pd.read_table(self.paths['eggnog_blast'], names=blast_cols)
-        
-        # Load membership tables
-        NOG_members = pd.read_table(eggnog_NOG_members_path)
-            #names=['cog', 'id', 'start_pos', 'end_pos'])
-        bactNOG_members = pd.read_table(eggnog_bactNOG_members_path)
-            #names=['cog', 'id', 'start_pos', 'end_pos'])
-            
-        # Load functional category tables
-        NOG_funccat = pd.read_table(eggnog_NOG_funccat_path, \
-            names=['cog', 'funccat'])
-        bactNOG_funccat = pd.read_table(eggnog_bactNOG_funccat_path, \
-            names=['cog', 'funccat'])
-        
-        # Create hit_nogs table
-        hit_nogs = pd.DataFrame(index=blast.query_id.unique(), \
-            columns=['tax_id', 'protein_id', 'e_val', 'NOG', 'NOG_funccat', 'bactNOG', 'bactNOG_funccat'])
-        for hit in hit_nogs.index:
-            identifier = blast.at[hit, 'hit_id']
-            tax_id, protein_id = identifier.split('.')
-            e_val = blast.at[hit, 'e_value']
+        # Load membership table
+        NOG_members = pd.read_table(eggnog_NOG_members_path, names=['nog', 'protein_name', 'start_pos', 'end_pos'], usecols=['nog', 'protein_name'], skiprows=1)
 
-            # BLAST hit
-            hit_nogs.at[hit, 'tax_id'] = tax_id
-            hit_nogs.at[hit, 'protein_id'] = protein_id
-            hit_nogs.at[hit, 'e_val'] = e_val
-            
-            # NOG Membership
-            # How do we do this fast?
-            #hit_nogs.at[hit, 'NOG'] = NOG_members['#nog name'][NOG_members['protein name'] == mg.blast.ix[1, 'hit_id']]
+        # Load functional category table
+        NOG_funccat = pd.read_table(eggnog_NOG_funccat_path, names=['nog', 'funccat'])
+        
+        # Read BLAST output into dataframe
+        blast_cols = ['gene', 'protein_name', 'percentage_identity', 'alignment_length', 'num_mismatches', 'num_gap_openings', 'q.start', 'q.end', 's.start', 's.end', 'e_value', 'score_bits']
+        blast = pd.read_table(self.paths['eggnog_blast'], names=blast_cols, usecols=['gene', 'protein_name', 'e_value'])
+        
+        # Get the top hits by E-value
+        top_hits = blast.groupby('gene').first().reset_index()
 
-            # Functional category
+        # Get NOGs for the hits
+        NOGs = pd.merge(top_hits, NOG_members, how='inner', left_on='protein_name', right_on='protein_name')
+        
+        # Get the functional categories
+        NOGs = pd.merge(NOGs, NOG_funccat, how='left', left_on='nog', right_on='nog')
 
         # Update stats
+        # - # of genes with NOGs
+        # - # of genes with functional categories
+        # - # of different NOGs
+        # - # of genes per NOG
+        # - # of functional categories
+        # - # of genes per category
+        # - # of NOGs per category
 
         # Save
+        self.NOGs = NOGs
+        self.NOGs.to_csv(self.paths['NOGs'])
+        
+    def load_NOGs(self):
+        """ Loads saved eggNOG gene clustering data. """
+        
+        # Parse BLAST output if NOGs not saved
+        if not self.check_path("NOGs"):
+            self.parse_eggnog_blast()
+            
+        # Read from file
+        self.NOGs = pd.read_csv(self.paths['NOGs'])
+        
             
     def process(self):
         """ Runs all processing steps of the pipeline. """
@@ -538,4 +551,5 @@ class Metagenome:
         self.load_hits()
         self.load_operons()
         self.dump_proteins()
+        self.load_NOGs()
         
