@@ -8,6 +8,7 @@ Created on Tue Feb 10 01:05:51 2015
 """
 from Metagenome import Metagenome
 from PSSMScorer import PSSMScorer
+import pandas as pd
 
 # Metagenomes
 metagenomes = []
@@ -56,7 +57,10 @@ for mg_id in metagenomes:
         print "  Genes: %d / NOGs: %d" % (mg.NOGs.gene.nunique(), mg.NOGs.nog.nunique())
         n_genes[mg_id] = mg.NOGs.gene.nunique()
         n_NOGs[mg_id] = mg.NOGs.nog.nunique()
-    
+n_genes = pd.DataFrame(n_genes.values(), index=n_genes.keys(), columns=['n_genes'])
+n_NOGs = pd.DataFrame(n_NOGs.values(), index=n_NOGs.keys(), columns=['n_NOGs'])
+stats = n_genes.join(n_NOGs)
+
 #%% Count TF NOGs
 NOGs = ["COG0468", "COG1974"]
 
@@ -70,6 +74,8 @@ for mg_id in metagenomes:
             n = sum(mg.NOGs.nog == NOG)
             print "  %s: %d" % (NOG, n)
             NOG_counts[NOG][mg.id] = n
+NOG_counts = pd.DataFrame(NOG_counts)
+stats = stats.join(NOG_counts)
 
 #%% PSSM scores
 lexA_COG = "COG1974"
@@ -81,9 +87,17 @@ sites = {"lexA": base_path + "lexA.Alphaproteobacteria.txt"}
 lexA = PSSMScorer(sites["lexA"])
 
 # Score sites
-#mg = Metagenome("mgm4491401.3")
-#mg.process()
+mg = Metagenome("mgm4491401.3")
+mg.process()
+
 # Get COG genes
+lexA_NOGs = mg.NOGs[mg.NOGs.nog == lexA_COG].gene
+lexA_genes = mg.hits.ix[lexA_NOGs][["operon", "operon_pos"]]
+
 # Get corresponding operons
+lexA_operons = mg.operons.ix[lexA_genes.operon]
+
 # Get promoter region for those operons
+lexA_promoters = lexA_operons.promoter_seq
+
 # Score

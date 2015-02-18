@@ -542,6 +542,9 @@ class Metagenome:
         # Read from file
         self.NOGs = pd.read_csv(self.paths['NOGs'])
         
+        if self.verbosity > 0:
+            print "Loaded NOGs from file."
+        
             
     def process(self):
         """ Runs all processing steps of the pipeline. """
