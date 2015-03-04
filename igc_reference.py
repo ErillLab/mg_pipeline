@@ -8,6 +8,7 @@ Created on Wed Feb 18 14:21:39 2015
 """
 import pandas as pd
 import numpy as np
+from time import clock
 from Bio import SeqIO
 from PSSMScorer import PSSMScorer
 
@@ -58,21 +59,47 @@ ORFs = pd.Series(lines).str.extract(ORF_pattern).convert_objects(convert_numeric
 
 #%% Operon prediction
 threshold_IGI = 50 # max intergenic interval (bp)
+promoter_region = (-250, +50) # bp rel to gene start
+operon_tables = []
+#operons = pd.DataFrame()
 
-# - group by 'scaffold' column and do groupwise operations
+# Group by 'scaffold' column and do groupwise operations
+i = 0; t = clock()
 for scaffold_name, scaf_ORFs in ORFs.groupby('scaffold'):
-    if scaf_ORFs.shape[0] > 10:
-        break
+#    if scaf_ORFs.shape[0] > 10:
+        #break
     
     # Sort by start values
     
     # Compute intergenic intervals
     IGIs = scaf_ORFs.start[1:].values - scaf_ORFs.end[:-1].values
     
-    # Find head genes (first gene is trivially a head gene)
-    head_genes = np.hstack((True, IGIs > threshold_IGI))
+    # Find operon gene indices
+    head_genes = np.where(IGIs > threshold_IGI)[0] + 1
+    operons_start = np.hstack(([0], head_genes))
+    operons_end = np.hstack((head_genes, [scaf_ORFs.shape[0]]))
+    head_gene_start = scaf_ORFs.start.iloc[operons_start]
     
-    # Split at head gene indices somehow?
+    # Get promoter regions
+    #scaffolds[scaffold_name][start:end]
+    
+    # Build operon table
+    scaffold_operons = pd.DataFrame()
+    scaffold_operons['genes'] = [scaf_ORFs.index[op_start:op_end] for op_start, op_end in zip(operons_start, operons_end)]
+    scaffold_operons['promoter_start'] = (head_gene_start + promoter_region[0]).clip(1).reset_index(drop=True)
+    scaffold_operons['promoter_end'] = (head_gene_start + promoter_region[1]).reset_index(drop=True)
+    
+    # Append to list of operon tables
+    operon_tables.append(scaffold_operons)
+    
+    i = i + 1
+    if i % 1000 == 0:
+        print i
+    
+# Merge operon tables
+operons = pd.concat(operon_tables, ignore_index=True)
+operons.index.name = 'operon'
+print "%.2fs" % (clock() - t)
     
 
 
