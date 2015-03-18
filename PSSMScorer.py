@@ -51,21 +51,16 @@ class PSSMScorer:
         seq = self.convert_seq(seq)
         return max(self.pssm.calculate(seq), self.pssm_r.calculate(seq))
         
-    def score_all(self, seq):
+    def score_all(self, seq, strand=False):
         """ Scores all sites in a sequence and returns an array of scores. """
-#        seq = self.convert_seq(seq)
-#        n = len(seq)
-#        m = self.pssm.length
-#        
-#        scores = np.zeros((1, n-m+1))
-#        for pos in range(0, n-m+1):
-#            scores[pos] = max(self.pssm.calculate(seq[pos:pos+m]), \
-#                              self.pssm_r.calculate(seq[pos:pos+m]))
-        return self.search(seq, -np.inf)
+        if strand:
+            return self.search(seq, -np.inf)
+        else:
+            return self.search(seq, -np.inf)[:, 1]
         
     def search(self, seq, threshold=0.0):
         """ Search for the sites in the sequence with a score above a threshold.
         Searches on both strands."""
-        return list(self.pssm.search(self.convert_seq(seq), both=True, threshold=threshold))
+        return np.array(list(self.pssm.search(self.convert_seq(seq), both=True, threshold=threshold)))
 
     

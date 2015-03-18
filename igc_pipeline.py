@@ -27,8 +27,8 @@ else:
 verbosity = 2 # 0 = no output, 1 = minimal, 2 = debugging
 
 # Base paths
-base_path = "../" # metagenomics folder
-IGC_path = base_path + "Li et al. (2014)/"
+base_path = "/home/cuda/2TB/metagenomics/" # metagenomics folder
+IGC_path = base_path + "IGC/"
 
 # Data paths
 gene_summary_path = IGC_path + "3.IGC.AnnotationInfo/IGC.annotation.summary.v2"
@@ -39,6 +39,11 @@ orfs_fasta_path = IGC_path + "5.IndividualORFs/"
 genes_path = IGC_path + "Genes/"
 orfs_path = IGC_path + "ORFs/"
 operons_path = IGC_path + "Operons/"
+
+# PSSM scoring
+binding_sites_path = base_path + 'binding_sites/'
+Firmicutes_LexA = PSSMScorer(binding_sites_path + 'Firmicutes_LexA.txt')
+GammaProteobacteria_LexA = PSSMScorer(binding_sites_path + 'GammaProteobacteria_LexA.txt')
 
 # Operon prediction
 threshold_IGI = 50 # max intergenic interval (bp)
@@ -233,7 +238,6 @@ def parse_ORFs(sample, overwrite=False):
     
 def predict_operons(sample, overwrite=False):
     """ Predicts operons for the given sample. """
-    # TODO: Fix strandedness
     t = time()
     
     # Get paths
@@ -256,32 +260,35 @@ def predict_operons(sample, overwrite=False):
     n_ORFs = ORFs.ngroups
     operon_tables = []; i = 0
     for scaffold_name, scaf_ORFs in ORFs:
-        # Sort by start values
-        scaf_ORFs.sort('start', inplace=True)
+        for strand, strand_ORFs in scaf_ORFs.groupby('strand', sort=False):
+            # Sort by start values
+            strand_ORFs.sort('start', inplace=True)
         
-        # Compute intergenic intervals
-        IGIs = scaf_ORFs.start[1:].values - scaf_ORFs.end[:-1].values
+            # Compute intergenic intervals
+            IGIs = strand_ORFs.start[1:].values - strand_ORFs.end[:-1].values
         
-        # Find operon gene indices
-        head_genes = np.where(IGIs > threshold_IGI)[0] + 1
-        operons_start = np.hstack(([0], head_genes))
-        operons_end = np.hstack((head_genes, [scaf_ORFs.shape[0]]))
-        head_gene_start = scaf_ORFs.start.iloc[operons_start]
+            # Find operon gene indices
+            head_genes = np.where(IGIs > threshold_IGI)[0] + 1
+            operons_start = np.hstack(([0], head_genes))
+            operons_end = np.hstack((head_genes, [scaf_ORFs.shape[0]]))
+            head_gene_start = scaf_ORFs.start.iloc[operons_start]
         
-        # Get promoter regions
-        promoter_start = (head_gene_start + promoter_region[0]).clip(1).reset_index(drop=True)
-        promoter_end = (head_gene_start + promoter_region[1]).reset_index(drop=True)
-        promoter_seq = [str(scaffolds[scaffold_name][s-1:e].seq) for s, e in zip(promoter_start, promoter_end)]
+            # Get promoter regions
+            promoter_start = (head_gene_start + promoter_region[0]).clip(1).reset_index(drop=True)
+            promoter_end = (head_gene_start + promoter_region[1]).reset_index(drop=True)
+            promoter_seq = [str(scaffolds[scaffold_name][s-1:e].seq) for s, e in zip(promoter_start, promoter_end)]
         
-        # Build operon table
-        scaffold_operons = pd.DataFrame()
-        scaffold_operons['genes'] = [scaf_ORFs.index[op_start:op_end].tolist() for op_start, op_end in zip(operons_start, operons_end)]
-        scaffold_operons['promoter_start'] = promoter_start
-        scaffold_operons['promoter_end'] = promoter_end
-        scaffold_operons['promoter_seq'] = promoter_seq
+            # Build operon table
+            strand_operons = pd.DataFrame()
+            strand_operons['genes'] = [strand_ORFs.index[op_start:op_end].tolist() for op_start, op_end in zip(operons_start, operons_end)]
+            strand_operons['strand'] = strand
+            strand_operons['promoter_start'] = promoter_start
+            strand_operons['promoter_end'] = promoter_end
+            strand_operons['promoter_seq'] = promoter_seq
+            strand_operons['head_completeness'] = strand_ORFs.ix[op_start, 'completeness']
         
-        # Append to list of operon tables
-        operon_tables.append(scaffold_operons)
+            # Append to list of operon tables
+            operon_tables.append(strand_operons)
         
         i = i + 1
         if verbosity >= 2 and i % (n_ORFs / 5) == 0:
@@ -300,3 +307,26 @@ def predict_operons(sample, overwrite=False):
     
     log("Predicted %d operons for %s." % (operons.shape[0], sample), t)
     return operons
+
+
+#%% PSSM scoring
+def score_sample(sample, PSSM):
+    """ Scores the promoters of all the operons in a sample using the PSSM. 
+    
+    Args:
+        sample: str
+            Name of the sample to score
+        PSSM: PSSMScorer
+            PSSM to use for scoring
+        """
+        
+    # Load operons for sample
+    operons = predict_operons(sample)
+    
+    # Score all promoters
+    t = time()
+    scores = operons.promoter_seq.apply(PSSM.score_all)
+    
+    log("Scored %d promoters for %s." % (scores.shape[0], sample), t)
+    return scores
+    
