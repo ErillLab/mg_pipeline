@@ -10,9 +10,11 @@ Created on Tue Mar 17 19:13:08 2015
 import os
 import sys
 import time
+import ast
 from glob import glob
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from Bio import SeqIO
 from PSSMScorer import PSSMScorer
 
@@ -245,7 +247,7 @@ def predict_operons(sample, overwrite=False):
     
     # Check for cache
     if not overwrite and os.path.exists(sample_paths["operons"]):
-        operons = pd.read_csv(sample_paths["operons"], index_col=0)
+        operons = pd.read_csv(sample_paths["operons"], index_col=0, converters={'genes':ast.literal_eval})
         log("Loaded %d cached operons from %s." % (operons.shape[0], sample), t)
         return operons
     
@@ -330,3 +332,27 @@ def score_sample(sample, PSSM):
     log("Scored %d promoters for %s." % (scores.shape[0], sample), t)
     return scores
     
+def plot_scores(scores):
+    # Analysis
+    all_scores = np.hstack(scores.values)
+    plt.figure()
+    plt.hist(all_scores, bins=20, range=(10, 21), normed=True)
+    plt.title('Firmicutes_LexA (Sample: MH0001)')
+    plt.xlabel('PSSM Score')
+    plt.ylabel('Number of sites')
+    
+    high_scores = all_scores[all_scores > 16.0]
+    high_scores.sort()
+    plt.figure()
+    plt.bar(range(len(high_scores)), high_scores)
+    plt.title('Firmicutes_LexA (Sample: MH0001) > 16.0 bits')
+    plt.xlabel('Top Sites')
+    plt.ylabel('PSSM Score')
+    
+def batch_score(samples):
+    for sample in samples:
+        try:
+            scores = score_sample(sample, Firmicutes_LexA)
+            scores.to_csv(IGC_path + 'Scores/Firmicutes_LexA/'+sample+'.csv')
+        except:
+            print 'Failed:', sample
