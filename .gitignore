@@ -55,3 +55,6 @@ target/
 
 # Data files
 *.csv
+
+# Sandbox
+tests/
