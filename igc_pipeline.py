@@ -30,9 +30,13 @@ verbosity = 2 # 0 = no output, 1 = minimal, 2 = debugging
 
 # Base paths
 base_path = "/home/cuda/2TB/metagenomics/" # metagenomics folder
+script_dir_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep
 IGC_path = base_path + "IGC/"
 
-# Data paths
+# Samples index
+samples_index_path = script_dir_path + "samples_index.csv"
+
+# IGC Data paths
 gene_summary_path = IGC_path + "3.IGC.AnnotationInfo/IGC.annotation.summary.v2"
 scaftigs_path = IGC_path + "4.IndividualAssmeblies/"
 orfs_fasta_path = IGC_path + "5.IndividualORFs/"
@@ -51,7 +55,7 @@ GammaProteobacteria_LexA = PSSMScorer(binding_sites_path + 'GammaProteobacteria_
 threshold_IGI = 50 # max intergenic interval (bp)
 promoter_region = (-250, +50) # bp relative to gene start
 
-
+#%% General
 def log(msg, start_time=None, verbosity_level=1):
     """ Convenience function for printing pipeline messages.
     
@@ -65,7 +69,7 @@ def log(msg, start_time=None, verbosity_level=1):
         
     Example:
         >>> start_time = time()
-        >>> log("Done processing.", start_time) 
+        >>> log("Done processing.", start_time)
         Done processing. [10.94s] """
         
     if verbosity_level <= verbosity:
@@ -73,42 +77,139 @@ def log(msg, start_time=None, verbosity_level=1):
             msg = msg + " [%.2fs]" % (time() - start_time)
         print msg
 
-def get_sample_paths(sample):
-    """ Returns paths to sample data files. """
-    paths = {}
+# Load pre-processed samples index
+samples_index = pd.read_csv(samples_index_path, index_col="sample")
+samples_aliases = samples_index["alias"].reset_index().set_index("alias")
+data_samples = samples_index[~(samples_index.Assemblies_filenames.isnull() | samples_index.ORFs_filenames.isnull())]
+
+def get_unique_sample(query_sample, error=False):
+    """ Returns a unique sample name by resolving ambiguity with aliases.
     
-    # TODO: Better path detection
-    try:
-        paths["scaftigs"] = glob(scaftigs_path + "*" + sample + "*")[0]
-    except:
-        log("Could not find sample scaftigs.")
-    try:
-        paths["ORFs_fasta"] = glob(orfs_fasta_path + "*" + sample + "*")[0]
-    except:
-        log("Could not find sample ORF FASTA.")
+    Args:
+        query_sample: str
+            Sample name to look up
+            
+    Returns:
+        sample: str
+            Unique sample name that indexes into samples_index table.
+            Returns None if query_sample is not found or raises LookupError.
+            
+    Example:
+        >>> get_unique_sample("MH192")
+        'MH0192'
+        >>> samples_index.loc[get_unique_sample("MH192")]
+        ...
+    """
+    
+    if query_sample in samples_index.index:
+        # Sample name is already unique
+        return query_sample
+    elif query_sample in samples_aliases.index:
+        # Get sample name from alias
+        return samples_aliases.at[query_sample, "sample"]
+    else:
+        # Sample name wasn't found
+        if error:
+            raise LookupError("Sample not found: %s" % query_sample)
+        return None
+
+def get_sample_paths(sample):
+    """ Returns paths to sample data files. 
+    
+    Args:
+        sample: str
+            Sample to query.
+            This name will be disambiguated by get_unique_sample().
+            Raises an exception if not found.
+            
+    Returns:
+        paths: Series
+            Absolute paths to the files associated with the sample. Keys:
+            
+            :sample: Unique sample name (see ``get_unique_sample()``)
+            :scaftigs: Assembled scaftigs (in ``scaftigs_path``)
+            :ORFs_fasta: ORF FASTA files (in ``orfs_fasta_path``)
+            :genes: Summary of genes in sample (see ``save_sample_genes()``)
+            :ORFs: ORF table without sequences (see ``parse_ORFs()``)
+            :operons: Predicted operons (see ``predict_operons()``)
+            
+    Example:
+        >>> get_sample_paths('MH192')
+        scaftigs      /home/cuda/2TB/metagenomics/IGC/4.IndividualAs...
+        ORFs_fasta    /home/cuda/2TB/metagenomics/IGC/4.IndividualAs...
+        genes          /home/cuda/2TB/metagenomics/IGC/Genes/MH0192.csv
+        ORFs            /home/cuda/2TB/metagenomics/IGC/ORFs/MH0192.csv
+        operons       /home/cuda/2TB/metagenomics/IGC/Operons/MH0192...
+        dtype: object
+    """
+    paths = pd.Series()
+    
+    # Get unique sample name
+    sample = get_unique_sample(sample, True)
+    
+    # IGC Data
+    paths["scaftigs"] = scaftigs_path + samples_index.at[sample, "Assemblies_filenames"]
+    paths["ORFs_fasta"] = orfs_fasta_path + samples_index.at[sample, "ORFs_filenames"]
     
     # Processed data
     paths["genes"] = genes_path + sample + ".csv"
     paths["ORFs"] = orfs_path + sample + ".csv"
     paths["operons"] = operons_path + sample + ".csv"
     
+    # Make sure paths are absolute
+    paths = paths.apply(os.path.abspath)
+    
     return paths
 
-def get_MetaHit():
-    """ Returns the names of the samples from the MetaHit database. """
-    # Search for MetaHit scaftigs
-    MH_paths = pd.Series(glob(scaftigs_path + "MH*"))
+def has_data(sample):
+    """ Checks if the sample has its data files. 
     
-    # Extract sample names from paths
-    MH_samples = MH_paths.str.extract("(MH\\d+)").values
+    Args:
+        sample: str
+            The sample to be queried
+            
+    Returns:
+        data_exists: Series
+            Same keys as returned by ``get_sample_paths()`` but will be True
+            for the ones for which the file exists.
+    """
+    return get_sample_paths(sample).apply(os.path.exists)
+
+def check_samples_data():
+    """ Returns a table of all samples and which data files are present. """
+    return data_samples.reset_index().sample.apply(has_data).set_index(data_samples.index)
+
+def get_MetaHit(study=2010):
+    """ Returns the names of the samples from the MetaHit database. 
     
-    # Sort by sample number
-    MH_samples = sorted(MH_samples, key=lambda x: int(x[2:]))
-    return MH_samples
+    Args:
+        study: int or str, default 2010
+            Year of the study to return. Studies:
+            
+            :2010: Qin et al. (2010) | doi:10.1038/nature08821
+            :2012: Qin et al. (2012) | doi:10.1038/nature11450
+            :2010: Le Chatelier et al. (2013) | doi:10.1038/nature12506
+            :"all": Returns all studies.
+    
+    Returns:
+        MetaHit_samples: list
+            The samples corresponding to the study selected
+    """
+    
+    queries = {"2010": "A human gut microbial gene catalogue", \
+               "2012": "A metagenome-wide association", \
+               "2013": "Richness of human gut"}
+    
+    if study == 'all':
+        return [item for inner_list in [get_MetaHit(k) for k in queries.keys()] for item in inner_list]
+    
+    return samples_index[samples_index.study.str.contains(queries[str(study)])].index.tolist()
     
 
 #%% Genes processing
-def load_gene_summary(limit=None, sample_col=True):
+# Matches all sample names and aliases (use get_unique_sample() to disambiguate)
+samples_regex = "(" + "|".join(set(samples_index.index.tolist() + samples_index.alias.tolist())) + ")"
+def load_gene_summary(limit=None, extract_samples=False):
     """ Loads the integrated gene summary.
     
     Warning: This may take a while as there are 9879896 rows in the table.
@@ -116,9 +217,9 @@ def load_gene_summary(limit=None, sample_col=True):
     Args:
         limit: int, default None
             The number of rows to return. If None, returns all.
-        sample_col: bool, default True
-            If True, adds a column containing the sample name extracted from 
-            the gene_name.
+        extract_sample: bool, default False
+            Tries to extract the sample that each gene comes from and appends 
+            it to the "sample" column (see ``extract_sample()``).
     
     Returns:
         gene_summary: DataFrame
@@ -138,24 +239,34 @@ def load_gene_summary(limit=None, sample_col=True):
         'cohort_origin', 'phylum', 'genus', 'kegg', 'eggNOG', 'sample_freq', \
         'individual_freq', 'eggNOG_funccat', 'kegg_funccat', 'cohort_assembled']
     gene_summary = pd.read_table(gene_summary_path, names=gene_summary_cols, index_col='gene_id', nrows=limit)
-    
-    # Add sample column to gene_summary table
-    idx = gene_summary.gene_name.map(lambda x: x[0].isdigit())
-    samples = pd.Series(index=gene_summary.index)
-    samples[idx] = gene_summary[idx].gene_name.str.split('.').str[0]
-    samples[~idx] = gene_summary[~idx].gene_name.str.split('_').str[0]
-    #idx = samples.map(lambda x: len(x) == 1)
-    #samples[idx] = samples[idx].map(lambda x: x[0].split('.'))
-    gene_summary['sample'] = samples
-    
     log("Loaded %d genes from summary." % (gene_summary.shape[0]), t)
+    
+    if extract_samples:
+        gene_summary["sample"] = extract_sample(gene_summary["gene_name"])
+    
     return gene_summary
 
-def save_individual_genes(overwrite=False, gene_summary=None):
+def extract_sample(gene_names):
+    """ Returns a Series of samples given a series of gene_names. """
+    
+    # Match against regex
+    t = time()
+    samples = gene_names.str.extract(samples_regex)
+    log("Extracted sample regex.", t)
+    
+    # Get unique names for samples
+    t = time()
+    samples = samples.apply(get_unique_sample)
+    log("Got unique samples.", t)
+    
+    return samples
+
+
+def save_sample_genes(overwrite=False, gene_summary=None):
     """ Splits the integrated gene summary into individual tables for each 
     sample.
     
-    Saves data to: genes_path/[sample].csv. 
+    Saves data to: [genes_path]/[sample].csv
     
     """
     
@@ -166,25 +277,46 @@ def save_individual_genes(overwrite=False, gene_summary=None):
     # Load the combined gene summary table
     if gene_summary is None:
         gene_summary = load_gene_summary()
+
+    # Extract samples from gene names
+    if "sample" not in gene_summary.columns:
+        gene_summary["sample"] = extract_sample(gene_summary["gene_name"])
+
+    # Drop genes without sample
+    n_total = len(gene_summary)
+    gene_summary = gene_summary[~gene_summary.sample.isnull()]
+    n_after = len(gene_summary)
+    log("%d/%d genes without sample (%.2f%%)." % (n_total - n_after, n_total, 100.0*(n_total - n_after)/n_total), None, 2)
     
-    # Save the list of samples
-    #gene_summary['sample'].unique().tofile(IGC_path + 'samples.txt', '\n')
+    empty_samples = samples_index[~(samples_index.Assemblies_filenames.isnull() | samples_index.ORFs_filenames.isnull())].index.diff(gene_summary.sample.unique())
+    log("%d/%d samples without genes (%.2f%%)." % (len(empty_samples), len(samples_index), 100.0*len(empty_samples)/len(samples_index)), None, 2)
     
     # Group by sample and save data
     t = time()
-    gene_summary = gene_summary.groupby('sample', sort=False)
-    for sample, genes in gene_summary:
-        sample_genes_path = genes_path + sample + ".csv"
+    gene_summary = gene_summary.groupby("sample", sort=False)
+    for sample, sample_genes in gene_summary:
+        sample_genes_path = get_sample_paths(sample).genes
         
         if overwrite or not os.path.exists(sample_genes_path):
-            genes.to_csv(sample_genes_path)
+            sample_genes.to_csv(sample_genes_path)
             
-        #log('%s: %d' % (sample, genes.shape[0]), None, 2)
-        log('%s: %s' % (sample, genes_path + sample + ".csv"), None, 2)
-    
     log("Saved genes for %d samples individually." % gene_summary.ngroups, t)
 
+def load_sample_genes(sample):
+    """ Loads the genes for a sample. """
+    # Get path
+    sample_genes_path = get_sample_paths(sample).genes
     
+    # Check if it exists
+    if not os.path.exists(sample_genes_path):
+        raise EnvironmentError("Genes file for %s does not exist: %s" % (sample, sample_genes_path))
+        
+    # Load and return
+    sample_genes = pd.read_csv(get_sample_paths(sample).genes, index_col="gene_name")
+    sample_genes.sort_index(inplace=True)
+    return sample_genes
+        
+
 #%% ORF and Operon processing
 def parse_ORFs(sample, overwrite=False):
     """ Parses the FASTA headers in the ORF FASTA file and saves the data.
@@ -209,7 +341,8 @@ def parse_ORFs(sample, overwrite=False):
         """
     t = time()
     
-    # Get paths
+    # Get unique sample and paths
+    sample = get_unique_sample(sample)
     sample_paths = get_sample_paths(sample)
     
     # Check for cache
