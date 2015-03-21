@@ -47,9 +47,12 @@ orfs_path = IGC_path + "ORFs/"
 operons_path = IGC_path + "Operons/"
 
 # PSSM scoring
-binding_sites_path = base_path + 'binding_sites/'
-Firmicutes_LexA = PSSMScorer(binding_sites_path + 'Firmicutes_LexA.txt')
-GammaProteobacteria_LexA = PSSMScorer(binding_sites_path + 'GammaProteobacteria_LexA.txt')
+binding_sites_path = base_path + "binding_sites/"
+Firmicutes_LexA = PSSMScorer(binding_sites_path + "Firmicutes_LexA.txt")
+GammaProteobacteria_LexA = PSSMScorer(binding_sites_path + "GammaProteobacteria_LexA.txt")
+
+# Score results
+scores_path = IGC_path + "Scores/"
 
 # Operon prediction
 threshold_IGI = 50 # max intergenic interval (bp)
@@ -247,26 +250,68 @@ def load_gene_summary(limit=None, extract_samples=False):
     return gene_summary
 
 def extract_sample(gene_names):
-    """ Returns a Series of samples given a series of gene_names. """
+    """ Returns samples given one or more gene_names. 
+    
+    Args:
+        gene_names: str, list, dict, Series
+            One or more gene_names
+            
+    Returns:
+        samples: str, list, dict, Series
+            Returns a Series if input was not of above types.
+            
+    Example:
+        >>> genes = load_sample_genes('MH192')
+        >>> extract_sample(genes.index)
+        0     MH0192
+        ...
+        21241    MH0192
+        Name: gene_name, Length: 21242, dtype: object
+        >>> extract_sample(['MH0192_GL0000004', 'MH0192_GL0000005', 'MH0193_GL0000001'])
+        ['MH0192', 'MH0192', 'MH0193']
+    """
+    
+    # Convert to Series
+    if type(gene_names) != pd.Series:
+        original_type = type(gene_names)
+        gene_names = pd.Series(gene_names)
     
     # Match against regex
     t = time()
     samples = gene_names.str.extract(samples_regex)
-    log("Extracted sample regex.", t)
+    v = [1, 2][(time() - t) < 1.0]
+    log("Extracted sample regex.", t, v)
     
     # Get unique names for samples
     t = time()
     samples = samples.apply(get_unique_sample)
-    log("Got unique samples.", t)
+    v = [1, 2][(time() - t) < 1.0]
+    log("Disambiguated sample names.", t, v)
     
-    return samples
+    if original_type == str:
+        return samples.ix[0]
+    elif original_type == list:
+        return samples.tolist()
+    elif original_type == dict:
+        return samples.to_dict()
+    else:
+        return samples
 
 
 def save_sample_genes(overwrite=False, gene_summary=None):
     """ Splits the integrated gene summary into individual tables for each 
     sample.
     
-    Saves data to: [genes_path]/[sample].csv
+    To load these files, see ``load_sample_genes()``.
+    
+    See ``genes_path`` for path to data files.
+    
+    Args:
+        overwrite: bool, default False
+            If True, will overwrite pre-existing gene files.
+        gene_summary: DataFrame, default None
+            Accepts a pre-loaded gene_summary DataFrame (see 
+            ``load_gene_summary()``). If None, calls that function to load it.
     
     """
     
@@ -303,7 +348,22 @@ def save_sample_genes(overwrite=False, gene_summary=None):
     log("Saved genes for %d samples individually." % gene_summary.ngroups, t)
 
 def load_sample_genes(sample):
-    """ Loads the genes for a sample. """
+    """ Loads the genes for a sample. 
+    
+    Args:
+        sample: str
+            Sample name to load genes for
+            
+    Returns:
+        sample_genes: DataFrame
+            Table derived from the global gene summary containing information
+            about the genes in the sample.
+            
+            Columns:
+                gene_id, gene_length, completeness, cohort_origin, phylum,
+                genus, kegg, eggNOG, sample_freq, individual_freq, 
+                eggNOG_funccat, kegg_funccat, cohort_assembled, sample
+     """
     # Get path
     sample_genes_path = get_sample_paths(sample).genes
     
@@ -372,7 +432,14 @@ def parse_ORFs(sample, overwrite=False):
     
     
 def predict_operons(sample, overwrite=False):
-    """ Predicts operons for the given sample. """
+    """ Predicts operons for the given sample. 
+    
+    Args:
+        sample: str
+            Sample for which to predict operons.
+        overwrite: bool, default False
+            If False, loads predictions from disk if they exist.
+    """
     t = time()
     
     # Get paths
@@ -431,7 +498,7 @@ def predict_operons(sample, overwrite=False):
         
     # Merge operon tables
     operons = pd.concat(operon_tables, ignore_index=True)
-    operons.index.name = 'operon'
+    operons.index.name = "operon"
     
     # Create parent folder if it does not exist
     if not os.path.exists(operons_path):
@@ -445,7 +512,7 @@ def predict_operons(sample, overwrite=False):
 
 
 #%% PSSM scoring
-def score_sample(sample, PSSM):
+def score_sample(sample, PSSM, overwrite=False):
     """ Scores the promoters of all the operons in a sample using the PSSM. 
     
     Args:
@@ -453,18 +520,72 @@ def score_sample(sample, PSSM):
             Name of the sample to score
         PSSM: PSSMScorer
             PSSM to use for scoring
+        overwrite: bool, default False
+            If False, will load cached scores from disk
         """
+        
+    # Validate sample name
+    sample = get_unique_sample(sample)
+    
+    # Get data file path
+    pssm_scores_path = scores_path + PSSM.name + "/"
+    sample_scores_path = pssm_scores_path + sample + ".h5"
+    
+    # Check for cache
+    if not overwrite and os.path.exists(sample_scores_path):
+        return get_sample_scores(sample, PSSM)
         
     # Load operons for sample
     operons = predict_operons(sample)
     
-    # Score all promoters
+    # Extract promoters and capitalize
+    seqs = operons.promoter_seq.str.upper()
+    
+    # Score all the promoter sequences
     t = time()
-    scores = operons.promoter_seq.apply(PSSM.score_all)
+    scores = seqs.apply(PSSM.fast_score).apply(pd.Series, args=([["+","-"]]))
+    log("Scored %s: %d sequences, %d bp." % (sample, len(seqs), seqs.apply(len).sum()), t, 1)
     
-    log("Scored %d promoters for %s." % (scores.shape[0], sample), t)
+    # Check if containing folder exists
+    if not os.path.exists(pssm_scores_path):
+        os.makedirs(pssm_scores_path)
+    
+    # Check if scores file exists
+    if os.path.exists(sample_scores_path):
+        os.remove(sample_scores_path) # delete existing
+        
+    # Save to HDF5
+    scores.to_hdf(sample_scores_path, "table", append=False, mode="w")
+    log("Saved scores for %s: %s" % (sample, sample_scores_path), t, 1)
+    
     return scores
+
+def get_sample_scores(sample, PSSM_name):
+    """ Loads scores for a given sample and PSSM name. """
     
+    # Validate sample name
+    sample = get_unique_sample(sample)
+    
+    # Get name from PSSM instance
+    if isinstance(PSSM_name, PSSMScorer):
+        PSSM_name = PSSM_name.name
+        
+    # Build path
+    pssm_scores_path = scores_path + PSSM_name + "/"
+    sample_scores_path = pssm_scores_path + "/" + sample + ".h5"
+    
+    # Check if file exists
+    if not os.path.exists(sample_scores_path):
+        raise EnvironmentError("Scores could not be found.")
+        
+    # Load scores
+    t = time()
+    scores = pd.read_hdf(sample_scores_path, "table")
+    log("Loaded cached %s scores for %s." % (PSSM_name, sample), t)
+    
+    return scores
+        
+
 def plot_scores(scores):
     # Analysis
     all_scores = np.hstack(scores.values)
@@ -481,11 +602,3 @@ def plot_scores(scores):
     plt.title('Firmicutes_LexA (Sample: MH0001) > 16.0 bits')
     plt.xlabel('Top Sites')
     plt.ylabel('PSSM Score')
-    
-def batch_score(samples):
-    for sample in samples:
-        try:
-            scores = score_sample(sample, Firmicutes_LexA)
-            scores.to_csv(IGC_path + 'Scores/Firmicutes_LexA/'+sample+'.csv')
-        except:
-            print 'Failed:', sample
