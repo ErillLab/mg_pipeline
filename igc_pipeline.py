@@ -413,11 +413,34 @@ def parse_ORFs(sample, overwrite=False):
     
     # Read in FASTA headers
     with open(sample_paths["ORFs_fasta"]) as f:
-        lines = [line[1:-2] for line in f if line[0] == '>']
-        
-    # Parse FASTA headers for ORFs
+        lines = [line[1:-1] for line in f if line[0] == '>']
+    
+    # Check header format
     ORF_pattern = '(?P<gene_name>[^ ]+)[ ]+\\[(?P<orf_type>[^\]]+)\\][ ]+locus=(?P<scaffold>[^:]+):(?P<start>[^:]+):(?P<end>[^:]+):(?P<strand>[^:\[]+)\\[(?P<completeness>[^\[\]]+)'
+    if "]" not in lines[0]:
+        ORF_pattern = '(?P<gene_name>[^\t]+)\tstrand:(?P<strand>[+-]) start:(?P<start>\d+) stop:(?P<end>\d+) length:(?P<length>\d+) start_codon:(?P<start_codon>\w+) stop_codon:(?P<stop_codon>\w+) gene_type:(?P<gene_type>\w+)'
+    
+    # Parse FASTA headers for ORFs
     ORFs = pd.Series(lines).str.extract(ORF_pattern).convert_objects(convert_numeric=True)
+    
+    # Standardize alternative format
+    if "]" not in lines[0]:
+        # completeness
+        ORFs.loc[(ORFs.start_codon == 'no') & (ORFs.stop_codon == 'no'), 'completeness'] = "Lack both ends"
+        ORFs.loc[(ORFs.start_codon == 'yes') & (ORFs.stop_codon == 'no'), 'completeness'] = "Lack 3'-end"
+        ORFs.loc[(ORFs.start_codon == 'no') & (ORFs.stop_codon == 'yes'), 'completeness'] = "Lack 5'-end"
+        ORFs.loc[(ORFs.start_codon == 'yes') & (ORFs.stop_codon == 'yes'), 'completeness'] = "Complete"
+        
+        # orf_type
+        ORFs.loc[:, "orf_type"] = "gene"
+        
+        # scaffold
+        ORFs.loc[:, "scaffold"] = ORFs.gene_name.str.extract("(?P<gene_name>.+)_gene")
+        
+        # Re-order columns
+        ORFs = ORFs.loc[:, ['gene_name', 'orf_type', 'scaffold', 'start', 'end', 'strand', 'completeness']]
+    
+    # Set gene_name as index
     ORFs.set_index("gene_name", inplace=True)
     
     # Create parent folder if it does not exist

@@ -33,11 +33,12 @@ class PSSMScorer:
         # Construct PSSM and reverse PSSM
         self.pssm = self.motif.pssm
         self.pssm_r = self.pssm.reverse_complement()
+        self.m = self.pssm.length
+        self.length = self.pssm.length
         
         # Fast score primitives
         self.dict_pssm = dict(self.pssm)
         self.dict_pssm_r = dict(self.pssm_r)
-        self.m = len(self.dict_pssm)
         
         # Default name
         if len(self.name) == 0:
@@ -60,15 +61,19 @@ class PSSMScorer:
     def score(self, seq):
         """ Scores a sequence and returns the best score between the forward
         and reverse strand. """
+        if len(seq) != self.m:
+            raise Exception("Sequence must be of same length as PSSM.")
+            
         seq = self.convert_seq(seq)
         return max(self.pssm.calculate(seq), self.pssm_r.calculate(seq))
         
-    def score_all(self, seq, strand=False):
+    def score_all(self, seq):
         """ Scores all sites in a sequence and returns an array of scores. """
-        if strand:
-            return self.search(seq, -np.inf)
-        else:
-            return self.search(seq, -np.inf)[:, 1]
+        all_scores = self.search(seq, -np.inf)
+        scores = scores_r = all_scores[all_scores[:, 0] >= 0, 1]
+        scores_r = all_scores[all_scores[:, 0] < 0, 1]
+        
+        return scores, scores_r
         
     def search(self, seq, threshold=0.0):
         """ Search for the sites in the sequence with a score above a threshold.
