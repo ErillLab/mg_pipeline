@@ -182,6 +182,11 @@ def check_samples_data():
     """ Returns a table of all samples and which data files are present. """
     return data_samples.reset_index().sample.apply(has_data).set_index(data_samples.index)
 
+def get_valid_samples():
+    """ Returns a list of all samples that have all data files present. """
+    valid = check_samples_data().all(1)
+    return valid.index[valid].tolist()
+
 def get_MetaHit(study=2010):
     """ Returns the names of the samples from the MetaHit database. 
     
@@ -208,7 +213,6 @@ def get_MetaHit(study=2010):
     
     return samples_index[samples_index.study.str.contains(queries[str(study)])].index.tolist()
     
-
 #%% Genes processing
 # Matches all sample names and aliases (use get_unique_sample() to disambiguate)
 samples_regex = "(" + "|".join(set(samples_index.index.tolist() + samples_index.alias.tolist())) + ")"
@@ -569,6 +573,9 @@ def score_sample(sample, PSSM, overwrite=False):
     scores = seqs.apply(PSSM.fast_score).apply(pd.Series, args=([["+","-"]]))
     log("Scored %s: %d sequences, %d bp." % (sample, len(seqs), seqs.apply(len).sum()), t, 1)
     
+    # Compute soft-max
+    scores["soft_max"] = scores.applymap(np.exp).sum(1).map(np.log)
+    
     # Check if containing folder exists
     if not os.path.exists(pssm_scores_path):
         os.makedirs(pssm_scores_path)
@@ -578,6 +585,7 @@ def score_sample(sample, PSSM, overwrite=False):
         os.remove(sample_scores_path) # delete existing
         
     # Save to HDF5
+    t = time()
     scores.to_hdf(sample_scores_path, "table", append=False, mode="w")
     log("Saved scores for %s: %s" % (sample, sample_scores_path), t, 1)
     
@@ -625,3 +633,74 @@ def plot_scores(scores):
     plt.title('Firmicutes_LexA (Sample: MH0001) > 16.0 bits')
     plt.xlabel('Top Sites')
     plt.ylabel('PSSM Score')
+
+#%% Summary stats
+def get_sample_summary(sample, PSSM):
+    sample = get_unique_sample(sample)
+    
+    # Load sample data
+    genes = load_sample_genes(sample)
+    ORFs = parse_ORFs(sample)
+    operons = predict_operons(sample)
+    scores = get_sample_scores(sample, PSSM)
+    
+    stats = pd.Series()
+    stats["operons"] = len(operons)
+    stats["ORFs"] = len(ORFs)
+    stats["genes"] = len(genes)
+    
+    stats["has_phylum"] = (genes.phylum != "unknown").sum()
+    stats["has_COG"] = (genes.eggNOG != "unknown").sum()
+    stats["has_both"] = ((genes.phylum != "unknown") & (genes.eggNOG != "unknown")).sum()
+    
+    # Find hits
+    hit_threshold = 8.0
+    hits = scores.applymap(lambda x: x >= hit_threshold)
+    stats["hit_sites"] = hits.applymap(sum).sum(1).sum()
+    
+    hit_operons = hits.applymap(sum).sum(1) > 0
+    stats["hit_operons"] = hit_operons.sum()
+    
+    hit_ORFs = np.hstack(operons.loc[hit_operons, "genes"])
+    stats["hit_ORFs"] = len(hit_ORFs)
+    
+    hit_genes = genes.index.intersection(hit_ORFs)
+    stats["hit_genes"] = len(hit_genes)
+    
+    stats["hit_has_phylum"] = (genes.loc[hit_genes, "phylum"] != "unknown").sum()
+    stats["hit_has_COG"] = (genes.loc[hit_genes, "eggNOG"] != "unknown").sum()
+    stats["hit_has_both"] = ((genes.loc[hit_genes, "eggNOG"] != "unknown") & (genes.loc[hit_genes, "phylum"] != "unknown")).sum()
+    
+    return stats
+
+def get_samples_summary(samples="all", PSSM=Firmicutes_LexA):
+    if samples == "all":
+        samples = get_valid_samples()
+        
+    stats = pd.Series(samples).apply(lambda x: get_sample_summary(x, PSSM))
+    stats.index = samples
+    stats.index.name = "sample"
+    
+    return stats
+    
+def extract_ORFs_with_COGs(sample):
+    sample = get_unique_sample(sample)
+    sample_paths = get_sample_paths(sample)
+    
+    # Load sample data
+    genes = load_sample_genes(sample)
+    
+    # Get ORFs with COGs
+    t = time()
+    has_cog = genes[genes.eggNOG != "unknown"].index.tolist()
+    ORF_seqs = SeqIO.index(sample_paths["ORFs_fasta"], "fasta")
+    valid_orfs = [ORF_seqs[orf] for orf in has_cog]
+
+    # Create containing folder if doesn't exist
+    if not os.path.exists(orfs_fasta_path + "has_cog"):
+        os.makedirs(orfs_fasta_path + "has_cog")
+    
+    # Save to file
+    valid_orfs_path = orfs_fasta_path + "has_cog/" + sample + ".fna"
+    SeqIO.write(valid_orfs, valid_orfs_path, "fasta")
+    log("Saved ORFs with COGs for %s." % sample, t)
