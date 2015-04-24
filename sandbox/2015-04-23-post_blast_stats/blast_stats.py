@@ -5,6 +5,7 @@ Created on Thu Apr 23 21:57:52 2015
 @author: Talmo
 """
 import sys
+import os
 sys.path.append("../..")
 from igc_pipeline import *
 from tqdm import tqdm
@@ -13,7 +14,7 @@ from glob import glob
 #%% Find BLASTed
 blast_out_path = IGC_path + "Taxonomy_BLAST/has_cog-eggNOG/"
 samples = get_all_samples()
-blasted = [p.replace(blast_out_path, "").replace(".tbl", "") for p in glob(blast_out_path + "*.tbl")]
+blasted = [p.replace(blast_out_path, "").replace(".tbl", "") for p in glob(blast_out_path + "*.tbl") if os.stat(p).st_size > 0]
 not_blasted = [sample for sample in samples if sample not in blasted]
 
 #%% Aggregate stats
@@ -43,7 +44,7 @@ for sample in tqdm(samples):
     
     # Taxonomy
     for level in levels:
-        taxonomy[level].add(genes.groupby(level).size(), fill_value=0)
+        taxonomy[level] = taxonomy[level].add(genes.groupby(level).size(), fill_value=0)
         tax_stats["missing"][level] += sum(genes[level].isnull())
         tax_stats["total"][level] += sum(~genes[level].isnull())
         if level + "_old" in genes:
@@ -55,6 +56,11 @@ for sample in tqdm(samples):
             tax_stats["old_total"][level] += sum(idx)
         else:
             tax_stats["new"][level] += sum(~genes[level].isnull())
+
+#%% Save
+COGs.to_csv("2014-04-23-COGs.csv")
+for level in levels:
+    taxonomy[level].to_csv("2014-04-23-Taxonomy_%s.csv" % level)
 
 #%% Analyze
 print "Samples: %d" % num_samples

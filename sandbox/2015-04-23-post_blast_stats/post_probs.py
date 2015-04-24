@@ -16,3 +16,11 @@ samples = get_all_samples()
 blasted = [p.replace(blast_out_path, "").replace(".tbl", "") for p in glob(blast_out_path + "*.tbl")]
 not_blasted = [sample for sample in samples if sample not in blasted]
 
+#%% Aggregate scores
+# Compare Gamma vs Firmicutes
+
+# 1. Select all genes matching the taxonomy
+# 2. Group by COG
+# 3. Find all corresponding operons
+# 4. Take soft max and concatenate all scores
+# 5. Compute posterior for each COG

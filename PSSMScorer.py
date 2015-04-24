@@ -45,6 +45,7 @@ class PSSMScorer:
         self.pssm = self.motif.pssm
         self.pssm_r = self.pssm.reverse_complement()
         self.m = self.pssm.length
+        self.w = self.pssm.length
         self.length = self.pssm.length
         
         # Fast score primitives
@@ -132,7 +133,7 @@ class PSSMScorer:
         
         # Generate random background scores
         # TODO: Read this off the PSSM
-        background_scores = np.array([self.score(random_site(self.length), True) for i in xrange(int(num_random))])
+        background_scores = np.array([self.score(random_seq(self.length), True) for i in xrange(int(num_random))])
         
         # Distributions
         mu_y, sigma_y = np.mean(pssm_scores), np.std(pssm_scores)
@@ -157,8 +158,8 @@ class PSSMScorer:
         return 1 / (1 + self.LL_ratio(sm_scores) * self.pb / self.pf)
         
 #%% Static methods
-def random_site(l):
-    """ Generates a random site sampling from the uniform distribution. """
+def random_seq(l):
+    """ Generates a random sequence sampling from the uniform distribution. """
     return "".join([random.choice("ACGT") for i in xrange(l)])
         
 def sm(scores, scores_r):
