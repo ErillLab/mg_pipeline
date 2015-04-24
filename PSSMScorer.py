@@ -8,8 +8,11 @@ Created on Wed Feb 11 11:05:08 2015
 """
 
 import os
+import random
 from Bio import Seq, SeqRecord, Alphabet, motifs
 import numpy as np
+import scipy
+
 
 class PSSMScorer:
     def __init__(self, binding_sites, name="", pseudocounts=1):
@@ -19,12 +22,20 @@ class PSSMScorer:
         
         self.name = name
         self.alphabet = Alphabet.IUPAC.unambiguous_dna
+        self.path = None
         
         if type(binding_sites) == str:
             self.seqs = [Seq.Seq(site.strip(), self.alphabet) for site in open(binding_sites).readlines()]
             self.name = os.path.splitext(os.path.basename(binding_sites))[0]
+            self.path = binding_sites
         elif type(binding_sites) == list:
             self.seqs = binding_sites
+            
+        self.n = len(self.seqs)
+        
+        # Default name
+        if len(self.name) == 0:
+            self.name = "pssm_%dbp_%dseqs" % (self.m, len(self.seqs))
             
         # Construct motif
         self.motif = motifs.create(self.seqs)
@@ -40,9 +51,15 @@ class PSSMScorer:
         self.dict_pssm = dict(self.pssm)
         self.dict_pssm_r = dict(self.pssm_r)
         
-        # Default name
-        if len(self.name) == 0:
-            self.name = "pssm_%dbp_%dseqs" % (self.m, len(self.seqs))
+        # Bayesian estimator
+        self.estimator_initialized = False
+        
+    def __repr__(self):
+        return "%s [%d bp | %d seqs]" % (self.name, self.length, self.n)
+    def __str__(self):
+        return "%s [%d bp | %d seqs]" % (self.name, self.length, self.n)
+    def __iter__(self):
+        return iter(self.seqs)
         
     def convert_seq(self, seq):
         """ Converts sequence strings to Biopython Seq objects with appropriate
@@ -58,8 +75,8 @@ class PSSMScorer:
         else:
             return seq
         
-    def score(self, seq):
-        """ Scores a sequence and returns the best score between the forward
+    def score_bio(self, seq):
+        """ Scores a sequence using Biopython and returns the best score between the forward
         and reverse strand. """
         if len(seq) != self.m:
             raise Exception("Sequence must be of same length as PSSM.")
@@ -70,7 +87,7 @@ class PSSMScorer:
     def score_all(self, seq):
         """ Scores all sites in a sequence and returns an array of scores. """
         all_scores = self.search(seq, -np.inf)
-        scores = scores_r = all_scores[all_scores[:, 0] >= 0, 1]
+        scores = all_scores[all_scores[:, 0] >= 0, 1]
         scores_r = all_scores[all_scores[:, 0] < 0, 1]
         
         return scores, scores_r
@@ -80,8 +97,8 @@ class PSSMScorer:
         Searches on both strands."""
         return np.array(list(self.pssm.search(self.convert_seq(seq), both=True, threshold=threshold)))
 
-    def fast_score(self, seq):
-        """ Sliding window scorer using faster primitives. """
+    def score(self, seq, soft_max=False):
+        """ Sliding window scorer using fast primitives. """
         n = len(seq)
         scores = np.zeros(n - self.m + 1)
         scores_r = np.zeros(n - self.m + 1)
@@ -89,4 +106,62 @@ class PSSMScorer:
             for pos in xrange(self.m):
                 scores[i] += self.dict_pssm[seq[i+pos]][pos]
                 scores_r[i] += self.dict_pssm_r[seq[i+pos]][pos]
-        return scores, scores_r
+        if soft_max:
+            return sm(scores, scores_r)
+        else:
+            return scores, scores_r
+
+    def score_self(self, soft_max=False):
+        """ Scores the sequences used to build the motif. """
+        scores = [self.score(seq, soft_max) for seq in self.seqs]
+        
+        if soft_max:
+            scores = np.hstack(scores) # convert to vector
+        return scores
+
+    def initialize_estimator(self, num_random=50000):
+        """ Initializes the parameters for the Bayesian estimator. """
+        # Parameters
+        self.pf = 1 / 100.0 # foreground probability
+        self.pb = 1 - self.pf # background probability
+        alpha = 1.0 / 300 # frequency of binding site?
+        #num_random = 10000 # number of random sequences to score to estimate background
+        
+        # Score motif sequences to estimate foreground
+        pssm_scores = self.score_self(True)
+        
+        # Generate random background scores
+        # TODO: Read this off the PSSM
+        background_scores = np.array([self.score(random_site(self.length), True) for i in xrange(int(num_random))])
+        
+        # Distributions
+        mu_y, sigma_y = np.mean(pssm_scores), np.std(pssm_scores)
+        mu_x, sigma_x = np.mean(background_scores), np.std(background_scores)
+        pdf_y = scipy.stats.distributions.norm(mu_y, sigma_y).pdf
+        pdf_x = scipy.stats.distributions.norm(mu_x, sigma_x).pdf
+        
+        # Calculations
+        L_b = lambda scores: pdf_x(scores)
+        L_f = lambda scores: alpha * pdf_y(scores) + (1 - alpha) * pdf_x(scores)
+        self.LL_ratio = lambda scores: np.exp(np.sum(np.log(L_b(scores)) - np.log(L_f(scores))))
+        
+        # Update initialized flag
+        self.estimator_initialized = True
+        
+    def post_prob(self, sm_scores):
+        """ Computes the posterior probability that the scores contain a
+        binding site. """
+        if not self.estimator_initialized:
+            self.initialize_estimator()
+            
+        return 1 / (1 + self.LL_ratio(sm_scores) * self.pb / self.pf)
+        
+#%% Static methods
+def random_site(l):
+    """ Generates a random site sampling from the uniform distribution. """
+    return "".join([random.choice("ACGT") for i in xrange(l)])
+        
+def sm(scores, scores_r):
+    """ Computes the soft max of the scores in two strands. """
+    return np.log(np.exp(scores) + np.exp(scores_r))
+    

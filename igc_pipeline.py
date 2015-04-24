@@ -11,7 +11,6 @@ import os
 import sys
 import time
 import ast
-from glob import glob
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,8 +32,9 @@ base_path = "/home/cuda/2TB/metagenomics/" # metagenomics folder
 script_dir_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep
 IGC_path = base_path + "IGC/"
 
-# Samples index
-samples_index_path = script_dir_path + "samples_index.csv"
+# Pipeline data paths
+samples_index_path = script_dir_path + "data/samples_index.csv"
+eggnog_tax_path = script_dir_path + "data/eggnogv4_taxonomy.csv"
 
 # IGC Data paths
 gene_summary_path = IGC_path + "3.IGC.AnnotationInfo/IGC.annotation.summary.v2"
@@ -57,6 +57,9 @@ scores_path = IGC_path + "Scores/"
 # Operon prediction
 threshold_IGI = 50 # max intergenic interval (bp)
 promoter_region = (-250, +50) # bp relative to gene start
+
+# BLASTing
+blast_columns = ["query", "hit", "percentage_identity", "alignment_length", "num_mismatches", "num_gap_openings", "q.start", "q.end", "s.start", "s.end", "e_value", "score_bits"]
 
 #%% General
 def log(msg, start_time=None, verbosity_level=1):
@@ -196,7 +199,7 @@ def get_MetaHit(study=2010):
             
             :2010: Qin et al. (2010) | doi:10.1038/nature08821
             :2012: Qin et al. (2012) | doi:10.1038/nature11450
-            :2010: Le Chatelier et al. (2013) | doi:10.1038/nature12506
+            :2013: Le Chatelier et al. (2013) | doi:10.1038/nature12506
             :"all": Returns all studies.
     
     Returns:
@@ -212,7 +215,12 @@ def get_MetaHit(study=2010):
         return [item for inner_list in [get_MetaHit(k) for k in queries.keys()] for item in inner_list]
     
     return samples_index[samples_index.study.str.contains(queries[str(study)])].index.tolist()
-    
+
+def get_all_samples(HMP=True):
+    if not HMP:
+        return data_samples[~data_samples.study.str.contains("Human Microbiome Project")]
+    return data_samples.index.tolist()
+
 #%% Genes processing
 # Matches all sample names and aliases (use get_unique_sample() to disambiguate)
 samples_regex = "(" + "|".join(set(samples_index.index.tolist() + samples_index.alias.tolist())) + ")"
@@ -570,7 +578,7 @@ def score_sample(sample, PSSM, overwrite=False):
     
     # Score all the promoter sequences
     t = time()
-    scores = seqs.apply(PSSM.fast_score).apply(pd.Series, args=([["+","-"]]))
+    scores = seqs.apply(PSSM.score).apply(pd.Series, args=([["+","-"]]))
     log("Scored %s: %d sequences, %d bp." % (sample, len(seqs), seqs.apply(len).sum()), t, 1)
     
     # Compute soft-max
@@ -615,24 +623,6 @@ def get_sample_scores(sample, PSSM_name):
     log("Loaded cached %s scores for %s." % (PSSM_name, sample), t)
     
     return scores
-        
-
-def plot_scores(scores):
-    # Analysis
-    all_scores = np.hstack(scores.values)
-    plt.figure()
-    plt.hist(all_scores, bins=20, range=(10, 21), normed=True)
-    plt.title('Firmicutes_LexA (Sample: MH0001)')
-    plt.xlabel('PSSM Score')
-    plt.ylabel('Number of sites')
-    
-    high_scores = all_scores[all_scores > 16.0]
-    high_scores.sort()
-    plt.figure()
-    plt.bar(range(len(high_scores)), high_scores)
-    plt.title('Firmicutes_LexA (Sample: MH0001) > 16.0 bits')
-    plt.xlabel('Top Sites')
-    plt.ylabel('PSSM Score')
 
 #%% Summary stats
 def get_sample_summary(sample, PSSM):
@@ -682,25 +672,4 @@ def get_samples_summary(samples="all", PSSM=Firmicutes_LexA):
     stats.index.name = "sample"
     
     return stats
-    
-def extract_ORFs_with_COGs(sample):
-    sample = get_unique_sample(sample)
-    sample_paths = get_sample_paths(sample)
-    
-    # Load sample data
-    genes = load_sample_genes(sample)
-    
-    # Get ORFs with COGs
-    t = time()
-    has_cog = genes[genes.eggNOG != "unknown"].index.tolist()
-    ORF_seqs = SeqIO.index(sample_paths["ORFs_fasta"], "fasta")
-    valid_orfs = [ORF_seqs[orf] for orf in has_cog]
-
-    # Create containing folder if doesn't exist
-    if not os.path.exists(orfs_fasta_path + "has_cog"):
-        os.makedirs(orfs_fasta_path + "has_cog")
-    
-    # Save to file
-    valid_orfs_path = orfs_fasta_path + "has_cog/" + sample + ".fna"
-    SeqIO.write(valid_orfs, valid_orfs_path, "fasta")
-    log("Saved ORFs with COGs for %s." % sample, t)
+ 

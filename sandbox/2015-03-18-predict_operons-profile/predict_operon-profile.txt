@@ -1,0 +1,614 @@
+         47230337 function calls (47095862 primitive calls) in 241.180 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  6419165   14.680    0.000   17.164    0.000 {isinstance}
+4282812/4167009    8.467    0.000    9.154    0.000 {len}
+    14946    7.824    0.001   18.999    0.001 _index.py:216(get_raw)
+    29892    7.730    0.000   14.962    0.001 FastaIO.py:24(SimpleFastaParser)
+  1581078    6.426    0.000    6.426    0.000 {method 'readline' of 'file' objects}
+   233406    5.927    0.000   33.036    0.000 series.py:134(__init__)
+  2757089    4.964    0.000    4.964    0.000 {method 'append' of 'list' objects}
+   326782    4.734    0.000   19.942    0.000 internals.py:1804(make_block)
+   140046    4.379    0.000   16.257    0.000 index.py:114(__new__)
+  1200710    3.961    0.000    3.961    0.000 {numpy.core.multiarray.array}
+   326782    3.855    0.000    8.743    0.000 internals.py:59(__init__)
+  1858129    3.851    0.000    3.851    0.000 {issubclass}
+   233406    3.741    0.000   14.119    0.000 internals.py:3035(__init__)
+  1578067    3.578    0.000    3.578    0.000 {method 'match' of '_sre.SRE_Pattern' objects}
+  1256709    3.189    0.000    3.661    0.000 {getattr}
+   677833    2.960    0.000    5.285    0.000 numeric.py:394(asarray)
+    56022    2.704    0.000    7.814    0.000 internals.py:2004(_rebuild_blknos_and_blklocs)
+93361/84025    2.689    0.000   18.653    0.000 internals.py:2129(apply)
+   261105    2.615    0.000    2.615    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+  1287040    2.546    0.000    2.546    0.000 {method 'readline' of 'cStringIO.StringI' objects}
+   214745    2.470    0.000    5.258    0.000 internals.py:1950(shape)
+     9401    2.440    0.000    5.387    0.001 _index.py:186(__iter__)
+  1272096    2.326    0.000    2.326    0.000 {method 'rstrip' of 'str' objects}
+   121372    2.105    0.000    4.278    0.000 common.py:2165(_asarray_tuplesafe)
+    93373    2.064    0.000    9.117    0.000 series.py:2397(_sanitize_array)
+   267029    2.047    0.000    3.643    0.000 index.py:256(__array_finalize__)
+   634899    2.020    0.000    2.787    0.000 internals.py:1952(<genexpr>)
+        1    2.018    2.018  241.093  241.093 igc_pipeline.py:144(predict_operons)
+    93376    1.991    0.000    5.036    0.000 common.py:1862(_possibly_infer_to_datetimelike)
+   233406    1.976    0.000    3.066    0.000 series.py:263(_set_axis)
+   448147    1.885    0.000    4.375    0.000 {method 'view' of 'numpy.ndarray' objects}
+   326782    1.767    0.000    2.769    0.000 internals.py:108(mgr_locs)
+    84031    1.729    0.000    7.665    0.000 common.py:202(_isnull_ndarraylike)
+    37344    1.708    0.000   21.798    0.001 internals.py:2764(insert)
+   364129    1.617    0.000    4.065    0.000 index.py:3936(_ensure_index)
+   214732    1.604    0.000    2.932    0.000 index.py:698(__contains__)
+   177405    1.574    0.000    1.803    0.000 {pandas.lib.infer_dtype}
+   336136    1.488    0.000    2.484    0.000 common.py:58(_check)
+   280101    1.479    0.000    2.134    0.000 numeric.py:1910(isscalar)
+   224072    1.460    0.000    3.527    0.000 internals.py:3165(values)
+   700257    1.418    0.000    1.418    0.000 internals.py:91(mgr_locs)
+    65353    1.272    0.000    9.654    0.000 common.py:300(array_equivalent)
+   448172    1.249    0.000    2.006    0.000 {hasattr}
+   280091    1.213    0.000    1.816    0.000 internals.py:3086(_values)
+   121376    1.208    0.000   11.573    0.000 common.py:132(_isnull_new)
+   140044    1.127    0.000    1.711    0.000 generic.py:1812(__finalize__)
+    37344    1.101    0.000    6.793    0.000 frame.py:2113(_sanitize_column)
+   252084    1.086    0.000    1.086    0.000 generic.py:87(__init__)
+    74695    1.079    0.000    2.174    0.000 shape_base.py:60(atleast_2d)
+   248355    1.040    0.000    2.981    0.000 index.py:443(values)
+    28008    1.012    0.000   12.374    0.000 generic.py:1594(reindex)
+    28008    0.986    0.000    9.290    0.000 generic.py:2149(fillna)
+    37344    0.984    0.000   24.876    0.001 internals.py:2656(set)
+    46685    0.968    0.000   12.377    0.000 internals.py:1909(__init__)
+     9336    0.953    0.000    2.043    0.000 internals.py:3799(get_mgr_concatenation_plan)
+   242751    0.943    0.000    0.943    0.000 {numpy.core.multiarray.empty}
+   205398    0.921    0.000    4.138    0.000 series.py:984(values)
+   466826    0.916    0.000    0.916    0.000 {method 'get' of 'dict' objects}
+   205401    0.911    0.000    1.562    0.000 numeric.py:464(asanyarray)
+    37347    0.892    0.000    3.075    0.000 common.py:620(take_nd)
+    74699    0.891    0.000    2.628    0.000 index.py:709(__getitem__)
+    84024    0.871    0.000    3.798    0.000 internals.py:435(copy)
+   177391    0.865    0.000    0.865    0.000 {numpy.core.multiarray.concatenate}
+    37344    0.854    0.000   11.187    0.000 index.py:1795(insert)
+    84025    0.805    0.000    0.805    0.000 {pandas.lib.list_to_object_array}
+   267029    0.786    0.000    0.786    0.000 index.py:218(_reset_identity)
+   196078    0.776    0.000    1.132    0.000 internals.py:1954(ndim)
+   112036    0.765    0.000    1.238    0.000 generic.py:297(_get_axis_name)
+   121387    0.758    0.000    1.339    0.000 common.py:2345(is_list_like)
+    74688    0.755    0.000    2.904    0.000 function_base.py:3832(append)
+    56021    0.724    0.000    1.725    0.000 internals.py:2297(_consolidate_check)
+    65026    0.719    0.000    2.053    0.000 fromnumeric.py:2259(prod)
+   112036    0.713    0.000    2.230    0.000 generic.py:310(_get_axis)
+    65366    0.708    0.000    3.787    0.000 common.py:1778(_possibly_cast_to_datetime)
+   326769    0.696    0.000    0.696    0.000 internals.py:2025(_get_items)
+    84036    0.675    0.000    4.180    0.000 series.py:2410(_try_cast)
+    93363    0.662    0.000    1.397    0.000 index.py:1173(get_loc)
+    14949    0.657    0.000    0.657    0.000 {method 'seek' of 'file' objects}
+    18674    0.650    0.000    5.173    0.000 internals.py:3497(_merge_blocks)
+   298764    0.645    0.000    0.645    0.000 internals.py:3082(_block)
+    37346    0.643    0.000    1.118    0.000 common.py:942(_maybe_promote)
+    37344    0.639    0.000    2.824    0.000 indexing.py:1520(_convert_to_index_sliceable)
+   149382    0.635    0.000    0.635    0.000 generic.py:1845(__setattr__)
+   233406    0.625    0.000    0.625    0.000 series.py:285(_set_subtyp)
+    37348    0.619    0.000    2.704    0.000 internals.py:2117(_verify_integrity)
+    65355    0.589    0.000   13.789    0.000 generic.py:1931(_protect_consolidate)
+    37344    0.584    0.000   47.579    0.001 frame.py:2072(_set_item)
+   167047    0.571    0.000    0.970    0.000 {pandas.lib.values_from_object}
+   112046    0.564    0.000    0.797    0.000 internals.py:181(ftype)
+   261438    0.561    0.000    0.561    0.000 internals.py:177(dtype)
+   121376    0.557    0.000    1.471    0.000 {pandas.lib.isscalar}
+   140063    0.556    0.000    0.556    0.000 {numpy.core.multiarray.arange}
+   294041    0.544    0.000    0.544    0.000 {method 'tell' of 'file' objects}
+   121372    0.544    0.000    0.775    0.000 index.py:365(_set_names)
+    18672    0.540    0.000    9.329    0.000 ops.py:469(wrapper)
+18672/9336    0.523    0.000    5.153    0.001 index.py:1244(get_indexer)
+   261414    0.521    0.000    0.521    0.000 index.py:1908(is_all_dates)
+    65354    0.521    0.000   14.626    0.000 generic.py:1870(_consolidate_inplace)
+   130705    0.512    0.000    0.662    0.000 {method 'copy' of 'numpy.ndarray' objects}
+   102708    0.511    0.000    1.788    0.000 {method 'any' of 'numpy.ndarray' objects}
+   112045    0.511    0.000    1.416    0.000 _methods.py:37(_any)
+    28009    0.498    0.000    2.534    0.000 internals.py:2586(iget)
+    28025    0.497    0.000    0.497    0.000 {pandas.lib.maybe_convert_objects}
+    37345    0.495    0.000    7.766    0.000 generic.py:1047(_get_item_cache)
+    74731    0.491    0.000    1.292    0.000 common.py:2248(_get_dtype_type)
+    56028    0.487    0.000    2.313    0.000 internals.py:1238(__init__)
+    37344    0.484    0.000   51.070    0.001 frame.py:1994(__setitem__)
+   121376    0.482    0.000   12.054    0.000 common.py:111(isnull)
+    74688    0.479    0.000    1.247    0.000 fromnumeric.py:1291(ravel)
+    29892    0.476    0.000    1.083    0.000 SeqRecord.py:153(__init__)
+    56014    0.471    0.000    0.471    0.000 {pandas.lib.isnullobj}
+    28010    0.469    0.000    1.569    0.000 numeric.py:2328(array_equal)
+    28008    0.460    0.000    1.832    0.000 index.py:523(_convert_slice_indexer)
+   168062    0.454    0.000    0.454    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+     9336    0.454    0.000   13.463    0.001 frame.py:2681(sort_index)
+    37344    0.443    0.000   25.572    0.001 generic.py:1138(_set_item)
+    93363    0.436    0.000    0.436    0.000 {method 'get_loc' of 'pandas.index.IndexEngine' objects}
+    28009    0.430    0.000    1.401    0.000 common.py:1765(_possibly_convert_platform)
+     9336    0.430    0.000   17.471    0.002 ops.py:625(wrapper)
+    14946    0.427    0.000    1.741    0.000 SeqRecord.py:313(__getitem__)
+    93365    0.425    0.000    0.628    0.000 index.py:199(is_)
+    28009    0.422    0.000    4.176    0.000 internals.py:2558(get)
+    37344    0.420    0.000    0.954    0.000 shape_base.py:8(atleast_1d)
+    56021    0.419    0.000    0.647    0.000 generic.py:284(_get_axis_number)
+    46685    0.415    0.000    6.691    0.000 generic.py:1829(__getattr__)
+    18672    0.409    0.000    8.122    0.000 series.py:782(reset_index)
+    93371    0.405    0.000    0.625    0.000 internals.py:2119(<genexpr>)
+    46681    0.403    0.000    1.197    0.000 index.py:222(view)
+   214732    0.400    0.000    0.400    0.000 {hash}
+    28008    0.386    0.000    6.980    0.000 generic.py:2101(copy)
+    37345    0.385    0.000    8.718    0.000 frame.py:1655(__getitem__)
+    18674    0.384    0.000    8.352    0.000 internals.py:2828(reindex_indexer)
+    28008    0.383    0.000    6.281    0.000 generic.py:2082(astype)
+    18673    0.381    0.000    1.267    0.000 index.py:1183(get_value)
+     9336    0.376    0.000   19.591    0.002 generic.py:3102(where)
+    37344    0.372    0.000   14.370    0.000 frame.py:2044(_ensure_valid_index)
+    74691    0.371    0.000    1.242    0.000 index.py:352(dtype)
+    65354    0.369    0.000    0.493    0.000 index.py:652(_engine)
+    56021    0.362    0.000    3.551    0.000 index.py:1915(equals)
+     9337    0.361    0.000    6.553    0.001 internals.py:3476(_consolidate)
+    37344    0.354    0.000    7.866    0.000 index.py:844(equals)
+     9337    0.350    0.000    6.468    0.001 ops.py:547(wrapper)
+    65026    0.343    0.000    1.334    0.000 _methods.py:34(_prod)
+   168049    0.343    0.000    0.343    0.000 series.py:248(_constructor)
+    65354    0.342    0.000   12.670    0.000 internals.py:2535(consolidate)
+    46682    0.340    0.000    1.086    0.000 common.py:1933(_is_bool_indexer)
+    29892    0.337    0.000   16.033    0.001 FastaIO.py:77(FastaIterator)
+    74702    0.335    0.000    0.491    0.000 internals.py:74(_consolidate_key)
+    18672    0.333    0.000    1.433    0.000 internals.py:148(getitem_block)
+   102697    0.328    0.000    0.455    0.000 internals.py:2175(<genexpr>)
+    18674    0.324    0.000    2.958    0.000 internals.py:742(take_nd)
+    56017    0.324    0.000    0.723    0.000 {sorted}
+     9338    0.324    0.000    4.464    0.000 internals.py:3243(form_blocks)
+    18678    0.317    0.000   10.284    0.001 frame.py:189(__init__)
+    18673    0.315    0.000    7.950    0.000 series.py:482(__getitem__)
+    28019    0.313    0.000    0.478    0.000 numeric.py:588(require)
+    28009    0.312    0.000    2.691    0.000 frame.py:1982(_box_item_values)
+    84036    0.312    0.000    0.312    0.000 common.py:1753(_possibly_castable)
+     9336    0.311    0.000    4.497    0.000 series.py:2041(take)
+    74702    0.310    0.000    0.801    0.000 internals.py:3482(<lambda>)
+    18673    0.310    0.000    1.167    0.000 index.py:783(take)
+   112044    0.307    0.000    0.307    0.000 {method 'fill' of 'numpy.ndarray' objects}
+    65355    0.307    0.000    2.521    0.000 internals.py:95(make_block_same_class)
+    65360    0.306    0.000    1.195    0.000 {method 'all' of 'numpy.ndarray' objects}
+    56022    0.306    0.000    8.339    0.000 internals.py:2550(_consolidate_inplace)
+    28008    0.306    0.000    1.780    0.000 internals.py:4023(get_reindexed_values)
+    18673    0.306    0.000    2.784    0.000 internals.py:3129(get_slice)
+    18672    0.305    0.000    0.605    0.000 index.py:508(_validate_slicer)
+    65360    0.301    0.000    0.888    0.000 _methods.py:40(_all)
+    18672    0.301    0.000   13.464    0.001 indexing.py:1386(_getitem_axis)
+    18674    0.299    0.000    0.892    0.000 index.py:1867(__new__)
+    28008    0.297    0.000    0.406    0.000 generic.py:238(_construct_axes_from_arguments)
+     9336    0.295    0.000    1.307    0.000 groupby.py:3416(_nargsort)
+     9336    0.291    0.000    2.681    0.000 internals.py:899(where)
+    65354    0.287    0.000   12.957    0.000 generic.py:1871(<lambda>)
+   130706    0.282    0.000    0.282    0.000 internals.py:3136(index)
+    37349    0.275    0.000    0.950    0.000 {sum}
+    28008    0.273    0.000    4.548    0.000 internals.py:2395(copy)
+    18673    0.271    0.000    4.067    0.000 series.py:586(_get_values)
+    37344    0.264    0.000    0.484    0.000 internals.py:4068(_fast_count_smallints)
+   102715    0.262    0.000    0.262    0.000 {min}
+    28008    0.258    0.000    2.008    0.000 index.py:859(identical)
+    18673    0.258    0.000    0.696    0.000 index.py:460(is_unique)
+     9337    0.256    0.000    0.645    0.000 indexing.py:1616(_maybe_convert_indices)
+    56018    0.255    0.000    0.946    0.000 index.py:655(<lambda>)
+    18673    0.254    0.000    0.323    0.000 frame.py:373(shape)
+     9336    0.252    0.000   46.648    0.005 generic.py:2707(clip_lower)
+     9336    0.251    0.000    4.301    0.000 internals.py:2368(get_slice)
+    56019    0.247    0.000    0.849    0.000 series.py:311(dtype)
+    56019    0.246    0.000    0.601    0.000 internals.py:3145(dtype)
+    28008    0.237    0.000    0.377    0.000 common.py:2350(_is_sequence)
+    18672    0.237    0.000    1.792    0.000 {zip}
+    28008    0.236    0.000    0.566    0.000 internals.py:3978(needs_filling)
+    28008    0.236    0.000    1.539    0.000 internals.py:323(_astype)
+    56016    0.234    0.000    0.346    0.000 index.py:864(<genexpr>)
+    37346    0.232    0.000    0.385    0.000 internals.py:2102(__len__)
+    37364    0.230    0.000    0.926    0.000 common.py:2273(is_datetime64_dtype)
+     9336    0.229    0.000    5.769    0.001 series.py:447(_ixs)
+    56021    0.227    0.000    0.574    0.000 {all}
+    18673    0.227    0.000    1.211    0.000 series.py:956(__iter__)
+        4    0.225    0.056    0.460    0.115 internals.py:3876(combine_concat_plans)
+    28009    0.224    0.000    1.445    0.000 series.py:238(from_array)
+    46680    0.223    0.000    0.343    0.000 generic.py:1122(_clear_item_cache)
+    14946    0.220    0.000    0.352    0.000 Seq.py:334(tostring)
+   112037    0.218    0.000    0.218    0.000 {pandas.lib.is_integer}
+    27672    0.216    0.000    1.054    0.000 expressions.py:68(_can_use_numexpr)
+    18672    0.215    0.000    2.573    0.000 index.py:325(astype)
+    18673    0.212    0.000    5.755    0.000 series.py:526(_get_with)
+    18672    0.212    0.000    0.665    0.000 index.py:1327(_possibly_promote)
+    14946    0.206    0.000   35.513    0.002 _index.py:63(get)
+    37345    0.204    0.000    7.970    0.000 frame.py:1680(_getitem_column)
+    28008    0.202    0.000   12.576    0.000 series.py:2031(reindex)
+    18672    0.200    0.000    0.622    0.000 generic.py:218(_construct_axes_dict)
+    28008    0.194    0.000    0.823    0.000 internals.py:3987(dtype)
+    37347    0.194    0.000    0.284    0.000 common.py:589(_get_take_nd_function)
+    89638    0.192    0.000    0.192    0.000 {method 'items' of 'dict' objects}
+    18672    0.191    0.000    1.232    0.000 shape_base.py:230(hstack)
+    21452    0.191    0.000    0.347    0.000 strings.py:466(f)
+    28008    0.184    0.000    3.875    0.000 internals.py:2236(astype)
+    28008    0.183    0.000    3.799    0.000 internals.py:2230(fillna)
+    93360    0.181    0.000    0.181    0.000 internals.py:3183(_consolidate_inplace)
+    28018    0.181    0.000    0.853    0.000 common.py:2283(is_timedelta64_dtype)
+    37344    0.177    0.000    0.249    0.000 index.py:464(is_integer)
+     9336    0.177    0.000    0.752    0.000 indexing.py:1333(_is_valid_list_like)
+    44838    0.177    0.000    0.261    0.000 Seq.py:222(__len__)
+    18672    0.176    0.000    1.579    0.000 ops.py:449(na_op)
+     9336    0.176    0.000    9.686    0.001 frame.py:281(_init_dict)
+    18674    0.175    0.000    1.289    0.000 shape_base.py:179(vstack)
+    37344    0.169    0.000    0.231    0.000 internals.py:3565(_get_blkno_placements)
+     9337    0.168    0.000    7.357    0.001 internals.py:2961(take)
+    65360    0.167    0.000    0.634    0.000 internals.py:2289(is_consolidated)
+    52290    0.161    0.000   16.063    0.000 {next}
+    28009    0.160    0.000    0.255    0.000 generic.py:1061(_set_as_cached)
+    56028    0.159    0.000    0.159    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+    28009    0.159    0.000    1.603    0.000 frame.py:1989(_box_col_values)
+     9339    0.158    0.000    0.382    0.000 common.py:1956(_default_index)
+     9336    0.156    0.000    1.108    0.000 internals.py:958(func)
+     9336    0.154    0.000    0.669    0.000 generic.py:1492(_update_inplace)
+    56016    0.153    0.000    0.190    0.000 index.py:550(validate)
+    28008    0.152    0.000    0.244    0.000 index.py:534(f)
+        3    0.152    0.051    0.975    0.325 internals.py:3695(get_empty_dtype_and_na)
+    37345    0.149    0.000    0.699    0.000 series.py:361(__len__)
+     9336    0.148    0.000    4.932    0.001 generic.py:1128(_slice)
+    18672    0.147    0.000    1.364    0.000 expressions.py:193(evaluate)
+     9338    0.144    0.000    8.152    0.001 frame.py:4613(_arrays_to_mgr)
+    29892    0.144    0.000    0.213    0.000 Seq.py:84(__init__)
+    28010    0.142    0.000    0.142    0.000 {method 'argsort' of 'numpy.ndarray' objects}
+    18672    0.142    0.000    1.075    0.000 expressions.py:93(_evaluate_numexpr)
+     9336    0.142    0.000    1.341    0.000 frame.py:4633(extract_index)
+     9337    0.142    0.000    6.219    0.001 index.py:1369(reindex)
+    18672    0.141    0.000    1.537    0.000 ops.py:420(maybe_convert_for_time_op)
+    28008    0.140    0.000    1.413    0.000 internals.py:236(fillna)
+    18673    0.139    0.000    0.301    0.000 numerictypes.py:736(issubdtype)
+    37344    0.138    0.000    0.234    0.000 internals.py:3900(_next_or_none)
+    18672    0.137    0.000    0.337    0.000 generic.py:1014(_indexer)
+    37345    0.137    0.000    0.137    0.000 internals.py:144(_slice)
+    14946    0.134    0.000    0.321    0.000 index.py:346(tolist)
+    18672    0.132    0.000    0.132    0.000 {operator.add}
+    28010    0.132    0.000    0.204    0.000 generic.py:358(_info_axis)
+     9338    0.130    0.000    6.492    0.001 internals.py:3233(create_block_manager_from_arrays)
+    18672    0.129    0.000    0.129    0.000 {pandas.algos.take_2d_axis0_object_object}
+    18672    0.127    0.000    0.127    0.000 {method 'astype' of 'numpy.ndarray' objects}
+    28008    0.126    0.000    1.665    0.000 internals.py:319(astype)
+        1    0.126    0.126   15.749   15.749 merge.py:726(__init__)
+    56023    0.125    0.000    0.125    0.000 internals.py:169(shape)
+    28008    0.122    0.000    0.122    0.000 {pandas.tslib.is_timestamp_array}
+    18673    0.122    0.000    0.226    0.000 common.py:2231(is_iterator)
+    56019    0.121    0.000    0.121    0.000 {iter}
+    14946    0.120    0.000   16.219    0.001 _index.py:50(_parse)
+     9336    0.120    0.000    5.860    0.001 indexing.py:1374(_get_slice_axis)
+    46680    0.119    0.000    0.119    0.000 {method 'clear' of 'dict' objects}
+     9337    0.119    0.000    8.525    0.001 internals.py:2816(reindex_axis)
+    29892    0.119    0.000    0.119    0.000 SeqRecord.py:72(__init__)
+    29916    0.119    0.000    0.119    0.000 {method 'join' of 'str' objects}
+    59784    0.118    0.000    0.118    0.000 SeqRecord.py:309(<lambda>)
+    14946    0.117    0.000    0.248    0.000 Seq.py:226(__getitem__)
+    56016    0.115    0.000    0.115    0.000 common.py:2421(_clean_fill_method)
+    18674    0.110    0.000    1.399    0.000 internals.py:3533(_vstack)
+    37344    0.109    0.000    0.143    0.000 index.py:564(is_int)
+    56016    0.109    0.000    0.109    0.000 internals.py:3177(is_consolidated)
+     9337    0.108    0.000    0.470    0.000 series.py:74(f)
+    56019    0.108    0.000    0.108    0.000 {pandas.lib.is_float}
+    28011    0.107    0.000    0.164    0.000 internals.py:3791(<genexpr>)
+     9336    0.107    0.000    0.715    0.000 indexing.py:160(_convert_slice_indexer)
+    18336    0.107    0.000    0.107    0.000 {numpy.core.multiarray.where}
+     9337    0.106    0.000    0.128    0.000 ops.py:524(na_op)
+    18672    0.102    0.000   13.565    0.001 indexing.py:1140(__getitem__)
+    14946    0.101    0.000    0.101    0.000 {_warnings.warn}
+     9337    0.101    0.000    0.101    0.000 {pandas.algos.take_2d_axis1_int64_int64}
+    18674    0.100    0.000    0.311    0.000 generic.py:314(_get_block_manager_axis)
+    28009    0.100    0.000    0.100    0.000 {method 'take' of 'numpy.ndarray' objects}
+     9000    0.100    0.000    0.253    0.000 expressions.py:128(_where_standard)
+        1    0.100    0.100    8.129    8.129 merge.py:850(get_result)
+    46682    0.098    0.000    0.098    0.000 internals.py:87(fill_value)
+    14946    0.097    0.000   35.610    0.002 File.py:349(__getitem__)
+    46683    0.096    0.000    0.096    0.000 internals.py:771(get_values)
+    28016    0.096    0.000    0.096    0.000 internals.py:208(iget)
+    37345    0.093    0.000    0.093    0.000 {pandas.lib.checknull}
+    14946    0.092    0.000    0.267    0.000 SeqRecord.py:701(__len__)
+    28008    0.091    0.000    0.091    0.000 internals.py:3968(__init__)
+    18674    0.090    0.000    0.399    0.000 series.py:995(get_values)
+     9336    0.089    0.000    4.356    0.000 generic.py:1414(reindex_like)
+    18672    0.089    0.000    0.142    0.000 expressions.py:174(_bool_arith_check)
+    18672    0.089    0.000    0.221    0.000 expressions.py:61(_evaluate_standard)
+    18672    0.089    0.000    0.127    0.000 index.py:1359(_get_method)
+    37345    0.089    0.000    0.089    0.000 {pandas.lib.is_possible_datetimelike_array}
+     9336    0.089    0.000    0.194    0.000 indexing.py:1676(_is_list_like)
+    46685    0.088    0.000    0.088    0.000 {pandas.algos.ensure_int64}
+        1    0.088    0.088  241.180  241.180 <string>:1(<module>)
+    18673    0.087    0.000    0.422    0.000 index.py:193(_simple_new)
+    18672    0.086    0.000    0.453    0.000 index.py:665(inferred_type)
+     9337    0.086    0.000    0.086    0.000 {pandas.algos.take_2d_axis1_object_object}
+     9336    0.086    0.000    9.124    0.001 internals.py:2209(where)
+     9336    0.085    0.000    6.463    0.001 groupby.py:3264(_chop)
+    18674    0.082    0.000    0.173    0.000 fromnumeric.py:803(argsort)
+     9336    0.082    0.000    0.082    0.000 {method 'get_indexer' of 'pandas.index.IndexEngine' objects}
+     9336    0.081    0.000    5.850    0.001 indexing.py:89(_get_loc)
+    18672    0.079    0.000    0.197    0.000 index.py:516(_convert_slice_indexer_getitem)
+    18674    0.078    0.000    0.112    0.000 index.py:241(_coerce_to_ndarray)
+    18673    0.078    0.000    0.122    0.000 numerictypes.py:668(issubclass_)
+    18673    0.078    0.000    0.078    0.000 {method 'get_value' of 'pandas.index.IndexEngine' objects}
+    37346    0.077    0.000    0.077    0.000 {pandas.algos.ensure_object}
+    29892    0.077    0.000    0.077    0.000 {method 'replace' of 'str' objects}
+        3    0.075    0.025    3.063    1.021 internals.py:3767(concatenate_join_units)
+    28010    0.075    0.000    0.075    0.000 {method 'startswith' of 'str' objects}
+     9336    0.074    0.000    0.294    0.000 indexing.py:1301(_has_valid_type)
+    37346    0.074    0.000    0.074    0.000 {pandas.algos.ensure_platform_int}
+     9336    0.073    0.000    0.217    0.000 index.py:672(is_all_dates)
+    24346    0.072    0.000    0.072    0.000 {method 'split' of 'str' objects}
+    37344    0.072    0.000    0.072    0.000 index.py:1899(inferred_type)
+    37344    0.071    0.000    0.071    0.000 series.py:333(ndim)
+     9337    0.068    0.000    6.534    0.001 groupby.py:3209(__iter__)
+     9336    0.068    0.000    0.178    0.000 generic.py:1099(_maybe_update_cacher)
+     9338    0.068    0.000    0.069    0.000 frame.py:4909(_homogenize)
+     9000    0.067    0.000    0.663    0.000 expressions.py:133(_where_numexpr)
+    21458    0.067    0.000    0.067    0.000 {method 'search' of '_sre.SRE_Pattern' objects}
+     9336    0.066    0.000   13.529    0.001 frame.py:2645(sort)
+        7    0.066    0.009    0.066    0.009 {pandas.lib.maybe_convert_numeric}
+    28023    0.061    0.000    0.061    0.000 {method 'extend' of 'list' objects}
+     9345    0.061    0.000    0.139    0.000 common.py:2307(is_float_dtype)
+    28025    0.061    0.000    0.061    0.000 {method 'upper' of 'str' objects}
+     9337    0.061    0.000    0.079    0.000 indexing.py:42(__init__)
+    14946    0.060    0.000    0.060    0.000 {cStringIO.StringIO}
+     9336    0.059    0.000    0.059    0.000 {operator.or_}
+     9337    0.059    0.000    0.129    0.000 internals.py:1992(_is_single_block)
+     9336    0.059    0.000    0.278    0.000 index.py:267(copy)
+     9336    0.059    0.000    0.095    0.000 common.py:2926(_maybe_match_name)
+    28008    0.057    0.000    0.057    0.000 internals.py:4019(is_sparse)
+    28010    0.056    0.000    0.056    0.000 {method 'values' of 'dict' objects}
+     9337    0.055    0.000    6.590    0.001 groupby.py:1186(get_iterator)
+    28014    0.054    0.000    0.054    0.000 {method 'copy' of 'dict' objects}
+     9340    0.054    0.000    0.076    0.000 generic.py:117(_init_mgr)
+    18672    0.053    0.000    0.053    0.000 expressions.py:164(_has_bool_dtype)
+     9336    0.052    0.000    4.985    0.001 indexing.py:92(_slice)
+     9336    0.052    0.000    4.852    0.001 series.py:2035(reindex_axis)
+    18672    0.051    0.000    0.051    0.000 {method 'update' of 'dict' objects}
+        9    0.050    0.006    0.214    0.024 {any}
+        1    0.049    0.049    0.408    0.408 strings.py:408(str_extract)
+     9336    0.049    0.000    0.080    0.000 fromnumeric.py:1380(nonzero)
+     9336    0.049    0.000   46.696    0.005 generic.py:2662(clip)
+    21452    0.047    0.000    0.047    0.000 {method 'groups' of '_sre.SRE_Match' objects}
+     9336    0.046    0.000    0.174    0.000 {method 'max' of 'numpy.ndarray' objects}
+    24346    0.046    0.000    0.046    0.000 __init__.py:169(<lambda>)
+     9336    0.046    0.000    0.127    0.000 _methods.py:25(_amax)
+     9336    0.046    0.000    0.078    0.000 common.py:1998(_try_sort)
+     9336    0.045    0.000    0.105    0.000 ops.py:596(na_op)
+     9336    0.045    0.000   12.719    0.001 generic.py:1874(consolidate)
+     9337    0.045    0.000    0.078    0.000 {setattr}
+     9336    0.045    0.000    0.386    0.000 series.py:329(shape)
+        1    0.045    0.045    5.613    5.613 internals.py:3671(concatenate_block_managers)
+     9336    0.044    0.000    0.044    0.000 {pandas.lib.get_blkno_indexers}
+     9336    0.043    0.000    0.162    0.000 base.py:90(_reset_cache)
+    14947    0.043    0.000    0.043    0.000 __init__.py:185(_as_bytes)
+     9336    0.043    0.000    0.064    0.000 function_base.py:47(iterable)
+     9336    0.042    0.000    0.135    0.000 {method 'min' of 'numpy.ndarray' objects}
+     9000    0.042    0.000    0.705    0.000 expressions.py:216(where)
+     9336    0.042    0.000    0.092    0.000 _methods.py:28(_amin)
+     9338    0.042    0.000    0.042    0.000 generic.py:104(_validate_dtype)
+     9342    0.041    0.000    0.097    0.000 generic.py:378(ndim)
+    18672    0.039    0.000    0.039    0.000 common.py:1223(_fill_zeros)
+     9336    0.038    0.000    0.038    0.000 {pandas.index.get_value_at}
+    14946    0.037    0.000    0.037    0.000 {method 'indices' of 'slice' objects}
+     9337    0.036    0.000    0.036    0.000 {pandas.index.convert_scalar}
+    18672    0.035    0.000    0.035    0.000 ops.py:479(<lambda>)
+     9336    0.034    0.000    0.034    0.000 {pandas.lib.is_datetime_array}
+     9337    0.034    0.000    0.049    0.000 index.py:3996(<genexpr>)
+     9337    0.033    0.000    0.050    0.000 merge.py:958(<genexpr>)
+    14946    0.032    0.000    0.032    0.000 SeqRecord.py:248(<lambda>)
+    14946    0.031    0.000    0.031    0.000 Seq.py:129(__str__)
+     9336    0.031    0.000    0.031    0.000 {method 'nonzero' of 'numpy.ndarray' objects}
+        1    0.030    0.030    2.392    2.392 index.py:3999(_union_indexes)
+        1    0.026    0.026    5.414    5.414 File.py:256(__init__)
+     9336    0.022    0.000    0.022    0.000 indexing.py:1683(_need_slice)
+     9336    0.021    0.000    0.021    0.000 generic.py:1151(_check_setitem_copy)
+     9338    0.020    0.000    0.020    0.000 frame.py:183(_constructor)
+     9000    0.019    0.000    0.019    0.000 internals.py:407(_try_coerce_args)
+     9337    0.019    0.000    0.019    0.000 {method 'keys' of 'dict' objects}
+     9400    0.018    0.000    0.018    0.000 {method 'strip' of 'str' objects}
+        1    0.018    0.018    0.068    0.068 index.py:3995(_get_distinct_indexes)
+     9336    0.018    0.000    0.018    0.000 {method 'add' of 'set' objects}
+     9336    0.018    0.000    0.018    0.000 {method 'pop' of 'dict' objects}
+     9000    0.017    0.000    0.017    0.000 internals.py:411(_try_coerce_result)
+     9336    0.016    0.000    0.016    0.000 {id}
+        2    0.014    0.007    0.014    0.007 {posix.listdir}
+        3    0.010    0.003    0.020    0.007 common.py:2596(_concat_compat)
+        1    0.006    0.006    0.072    0.072 merge.py:926(_get_concat_axis)
+        1    0.006    0.006    2.466    2.466 merge.py:914(_get_comb_axis)
+        2    0.006    0.003    0.011    0.006 fnmatch.py:45(filter)
+     2534    0.005    0.000    0.005    0.000 glob.py:82(<lambda>)
+        1    0.005    0.005    0.005    0.005 {pandas.lib.to_object_array}
+        2    0.005    0.002    0.009    0.005 {filter}
+        1    0.002    0.002    0.002    0.002 {method 'get_labels' of 'pandas.hashtable.PyObjectHashTable' objects}
+        2    0.002    0.001    0.004    0.002 internals.py:3390(_stack_arrays)
+        2    0.002    0.001    0.002    0.001 {open}
+        1    0.001    0.001   23.880   23.880 merge.py:666(concat)
+        1    0.001    0.001    0.001    0.001 index.py:4040(_sanitize_and_check)
+        6    0.001    0.000    0.001    0.000 __init__.py:52(create_string_buffer)
+        7    0.001    0.000    0.001    0.000 {range}
+      168    0.001    0.000    0.001    0.000 encoder.py:33(encode_basestring)
+        9    0.001    0.000    0.001    0.000 {max}
+      168    0.001    0.000    0.001    0.000 {method 'sub' of '_sre.SRE_Pattern' objects}
+       24    0.001    0.000    0.002    0.000 encoder.py:212(iterencode)
+        6    0.001    0.000    0.001    0.000 {locals}
+       42    0.000    0.000    0.000    0.000 {method 'send' of 'zmq.backend.cython.socket.Socket' objects}
+        1    0.000    0.000    0.000    0.000 {pandas.lib.to_object_array_tuples}
+       16    0.000    0.000    0.011    0.001 iostream.py:207(write)
+        6    0.000    0.000    0.008    0.001 session.py:585(send)
+       24    0.000    0.000    0.003    0.000 encoder.py:186(encode)
+        6    0.000    0.000    0.004    0.001 session.py:526(serialize)
+        1    0.000    0.000    0.000    0.000 {pandas.lib.generate_slices}
+       24    0.000    0.000    0.003    0.000 __init__.py:193(dumps)
+        6    0.000    0.000    0.001    0.000 uuid.py:579(uuid4)
+       24    0.000    0.000    0.003    0.000 jsonapi.py:31(dumps)
+        1    0.000    0.000    0.069    0.069 internals.py:1254(convert)
+        7    0.000    0.000    0.067    0.010 common.py:1689(_possibly_convert_objects)
+       22    0.000    0.000    0.000    0.000 iostream.py:102(_check_mp_mode)
+       78    0.000    0.000    0.000    0.000 traitlets.py:395(__get__)
+        1    0.000    0.000    0.000    0.000 {method 'read' of 'file' objects}
+        6    0.000    0.000    0.010    0.002 iostream.py:151(flush)
+        6    0.000    0.000    0.001    0.000 session.py:511(sign)
+        1    0.000    0.000    0.000    0.000 {pandas.algos.groupsort_indexer}
+        6    0.000    0.000    0.000    0.000 uuid.py:101(__init__)
+        1    0.000    0.000    0.408    0.408 strings.py:865(wrapper2)
+        8    0.000    0.000    0.011    0.001 igc_pipeline.py:45(log)
+        6    0.000    0.000    0.000    0.000 {zmq.backend.cython._poll.zmq_poll}
+        6    0.000    0.000    0.000    0.000 {built-in method now}
+       28    0.000    0.000    0.000    0.000 iostream.py:93(_is_master_process)
+        6    0.000    0.000    0.001    0.000 socket.py:250(send_multipart)
+       24    0.000    0.000    0.003    0.000 session.py:84(<lambda>)
+       30    0.000    0.000    0.000    0.000 {method 'update' of '_hashlib.HASH' objects}
+       16    0.000    0.000    0.000    0.000 {method 'decode' of 'str' objects}
+        1    0.000    0.000    2.538    2.538 merge.py:890(_get_new_axes)
+       24    0.000    0.000    0.000    0.000 hmac.py:83(update)
+        6    0.000    0.000    0.002    0.000 session.py:489(msg_header)
+        6    0.000    0.000    0.003    0.000 session.py:492(msg)
+        9    0.000    0.000    0.000    0.000 internals.py:3393(_asarray_compat)
+        4    0.000    0.000    0.035    0.009 glob.py:29(iglob)
+        6    0.000    0.000    0.000    0.000 attrsettr.py:35(__getattr__)
+       16    0.000    0.000    0.000    0.000 utf_8.py:15(decode)
+        6    0.000    0.000    0.000    0.000 hmac.py:88(copy)
+       24    0.000    0.000    0.000    0.000 encoder.py:101(__init__)
+       16    0.000    0.000    0.000    0.000 {_codecs.utf_8_decode}
+        2    0.000    0.000    0.007    0.004 frame.py:4812(_list_to_arrays)
+        6    0.000    0.000    0.001    0.000 iostream.py:123(_flush_from_subprocesses)
+       12    0.000    0.000    0.000    0.000 jsonutil.py:102(date_default)
+        2    0.000    0.000    0.034    0.017 glob.py:71(glob1)
+        1    0.000    0.000    0.001    0.001 groupby.py:1950(_get_grouper)
+       18    0.000    0.000    0.000    0.000 {time.time}
+        6    0.000    0.000    0.000    0.000 uuid.py:197(__str__)
+       34    0.000    0.000    0.000    0.000 {posix.getpid}
+       18    0.000    0.000    0.000    0.000 {method 'encode' of 'unicode' objects}
+        2    0.000    0.000    0.000    0.000 posixpath.py:89(split)
+        6    0.000    0.000    0.000    0.000 session.py:200(extract_header)
+        6    0.000    0.000    0.000    0.000 iostream.py:238(_flush_buffer)
+        6    0.000    0.000    0.000    0.000 iostream.py:96(_is_master_thread)
+        6    0.000    0.000    0.002    0.000 session.py:437(msg_id)
+       16    0.000    0.000    0.000    0.000 {method 'write' of '_io.StringIO' objects}
+        1    0.000    0.000    0.002    0.002 algorithms.py:96(factorize)
+        6    0.000    0.000    0.001    0.000 session.py:195(msg_header)
+        6    0.000    0.000    0.000    0.000 threading.py:1152(currentThread)
+       18    0.000    0.000    0.000    0.000 {method 'copy' of '_hashlib.HASH' objects}
+        6    0.000    0.000    0.000    0.000 poll.py:77(poll)
+        2    0.000    0.000    0.035    0.017 glob.py:18(glob)
+        6    0.000    0.000    0.000    0.000 hmac.py:100(_current)
+        1    0.000    0.000    0.000    0.000 {pandas.algos.take_1d_int64_int64}
+        7    0.000    0.000    0.000    0.000 internals.py:3524(_block_shape)
+       12    0.000    0.000    0.000    0.000 {method 'isoformat' of 'datetime.datetime' objects}
+        2    0.000    0.000    0.007    0.004 frame.py:4718(_to_arrays)
+        9    0.000    0.000    0.002    0.000 frame.py:4880(convert)
+        2    0.000    0.000    0.002    0.001 frame.py:4870(_convert_object_array)
+        1    0.000    0.000    0.000    0.000 {pandas.lib.clean_index_list}
+        6    0.000    0.000    0.000    0.000 glob.py:99(has_magic)
+        7    0.000    0.000    0.000    0.000 encoder.py:37(replace)
+        1    0.000    0.000    5.415    5.415 __init__.py:730(index)
+        6    0.000    0.000    0.000    0.000 {map}
+        1    0.000    0.000    0.000    0.000 nanops.py:152(_get_values)
+        1    0.000    0.000    0.000    0.000 groupby.py:1793(__init__)
+        6    0.000    0.000    0.000    0.000 hmac.py:119(hexdigest)
+        1    0.000    0.000    0.000    0.000 nanops.py:559(_maybe_null_out)
+        1    0.000    0.000    0.000    0.000 bgzf.py:551(_load_block)
+        1    0.000    0.000    0.001    0.001 generic.py:2724(groupby)
+        1    0.000    0.000    0.003    0.003 generic.py:1217(take)
+        1    0.000    0.000    0.001    0.001 File.py:96(_open_for_random_access)
+        2    0.000    0.000    0.000    0.000 posixpath.py:68(join)
+        6    0.000    0.000    0.000    0.000 iostream.py:247(_new_buffer)
+        1    0.000    0.000    0.001    0.001 frame.py:4071(_reduce)
+        1    0.000    0.000    0.074    0.074 internals.py:2239(convert)
+        1    0.000    0.000    0.000    0.000 strings.py:922(_wrap_result)
+        1    0.000    0.000    0.000    0.000 bgzf.py:405(_load_bgzf_block)
+        1    0.000    0.000    0.001    0.001 groupby.py:364(__init__)
+        2    0.000    0.000    0.000    0.000 index.py:676(__iter__)
+        1    0.000    0.000    0.000    0.000 bgzf.py:522(__init__)
+        1    0.000    0.000    2.460    2.460 index.py:3980(_get_combined_index)
+        1    0.000    0.000    0.002    0.002 groupby.py:1311(_get_compressed_labels)
+        1    0.000    0.000    0.000    0.000 internals.py:3356(_multi_blockify)
+        6    0.000    0.000    0.000    0.000 {method 'digest' of '_hashlib.HASH' objects}
+        1    0.000    0.000    0.001    0.001 _index.py:168(__init__)
+        6    0.000    0.000    0.000    0.000 threading.py:983(ident)
+        6    0.000    0.000    0.000    0.000 {thread.get_ident}
+        6    0.000    0.000    0.000    0.000 hmac.py:30(__init__)
+        1    0.000    0.000    0.000    0.000 generic.py:273(_from_axes)
+        1    0.000    0.000    0.074    0.074 generic.py:2119(convert_objects)
+        6    0.000    0.000    0.000    0.000 {method 'hexdigest' of '_hashlib.HASH' objects}
+        1    0.000    0.000    0.004    0.004 internals.py:3342(_simple_blockify)
+        1    0.000    0.000    0.001    0.001 nanops.py:252(nansum)
+        1    0.000    0.000    0.000    0.000 nanops.py:205(_na_ok_dtype)
+        1    0.000    0.000    0.002    0.002 groupby.py:1933(_make_labels)
+        4    0.000    0.000    0.000    0.000 nanops.py:44(<genexpr>)
+        6    0.000    0.000    0.000    0.000 {method 'getvalue' of '_io.StringIO' objects}
+        2    0.000    0.000    0.000    0.000 common.py:2261(is_integer_dtype)
+        6    0.000    0.000    0.000    0.000 {method 'count' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 groupby.py:2063(_convert_grouper)
+        1    0.000    0.000    0.000    0.000 series.py:2331(str)
+        1    0.000    0.000    0.000    0.000 index.py:2762(from_arrays)
+        1    0.000    0.000    0.001    0.001 groupby.py:1133(groupby)
+        6    0.000    0.000    0.000    0.000 {method 'close' of '_io.StringIO' objects}
+        1    0.000    0.000    0.000    0.000 algorithms.py:381(_get_data_algo)
+        7    0.000    0.000    0.000    0.000 {method 'group' of '_sre.SRE_Match' objects}
+        1    0.000    0.000    0.002    0.002 groupby.py:1342(result_index)
+        1    0.000    0.000    0.001    0.001 nanops.py:41(_f)
+        1    0.000    0.000    0.001    0.001 generic.py:3773(stat_func)
+        1    0.000    0.000    0.003    0.003 groupby.py:3226(_get_sorted_data)
+        1    0.000    0.000    0.001    0.001 _index.py:40(__init__)
+        2    0.000    0.000    0.000    0.000 re.py:230(_compile)
+        1    0.000    0.000    0.002    0.002 groupby.py:1302(group_info)
+        3    0.000    0.000    0.000    0.000 nanops.py:36(check)
+        1    0.000    0.000    0.000    0.000 indexing.py:1556(_check_bool_indexer)
+        6    0.000    0.000    0.000    0.000 py3compat.py:11(no_code)
+        2    0.000    0.000    0.000    0.000 groupby.py:2010(<genexpr>)
+        1    0.000    0.000    0.000    0.000 groupby.py:3292(get_splitter)
+        1    0.000    0.000    0.001    0.001 nanops.py:66(f)
+        2    0.000    0.000    0.000    0.000 {method 'rfind' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 generic.py:1948(as_matrix)
+        2    0.000    0.000    0.000    0.000 re.py:192(compile)
+        2    0.000    0.000    0.000    0.000 _methods.py:31(_sum)
+        1    0.000    0.000    0.000    0.000 internals.py:2415(as_matrix)
+        1    0.000    0.000    0.000    0.000 groupby.py:1175(shape)
+        2    0.000    0.000    0.000    0.000 generic.py:687(<genexpr>)
+        1    0.000    0.000    0.002    0.002 groupby.py:1347(get_group_levels)
+        2    0.000    0.000    0.000    0.000 groupby.py:1177(<genexpr>)
+        1    0.000    0.000    0.000    0.000 groupby.py:1334(_overflow_possible)
+        2    0.000    0.000    0.000    0.000 groupby.py:2004(<genexpr>)
+        2    0.000    0.000    0.000    0.000 {method 'sum' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.002    0.002 groupby.py:407(ngroups)
+        1    0.000    0.000    0.000    0.000 groupby.py:3204(sort_idx)
+        1    0.000    0.000    0.002    0.002 groupby.py:1338(ngroups)
+        1    0.000    0.000    0.001    0.001 frame.py:4074(<lambda>)
+        2    0.000    0.000    0.000    0.000 internals.py:3399(_shape_compat)
+        1    0.000    0.000    0.000    0.000 fromnumeric.py:1772(any)
+        1    0.000    0.000    0.000    0.000 groupby.py:1204(_get_group_keys)
+        1    0.000    0.000    0.000    0.000 __init__.py:140(itervalues)
+        4    0.000    0.000    0.000    0.000 groupby.py:1927(group_index)
+        1    0.000    0.000    0.000    0.000 common.py:2293(_is_datetime_or_timedelta_dtype)
+        1    0.000    0.000    0.000    0.000 common.py:2267(_is_int_or_datetime_dtype)
+        1    0.000    0.000    0.000    0.000 groupby.py:1913(ngroups)
+        1    0.000    0.000    0.000    0.000 generic.py:684(empty)
+        1    0.000    0.000    0.000    0.000 nanops.py:215(_wrap_results)
+        1    0.000    0.000    0.000    0.000 groupby.py:3248(__init__)
+        2    0.000    0.000    0.000    0.000 groupby.py:2005(<genexpr>)
+        1    0.000    0.000    0.000    0.000 groupby.py:3199(slabels)
+        2    0.000    0.000    0.002    0.001 groupby.py:1921(labels)
+        1    0.000    0.000    0.000    0.000 groupby.py:3330(_int64_overflow_possible)
+        1    0.000    0.000    0.000    0.000 internals.py:2302(is_mixed_type)
+        1    0.000    0.000    0.000    0.000 generic.py:1989(values)
+        1    0.000    0.000    0.000    0.000 common.py:1004(_maybe_upcast_putmask)
+        1    0.000    0.000    0.000    0.000 series.py:368(__array__)
+        1    0.000    0.000    0.000    0.000 groupby.py:3192(__init__)
+        2    0.000    0.000    0.000    0.000 {method 'endswith' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 groupby.py:1200(_get_splitter)
+        3    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 groupby.py:1259(levels)
+        1    0.000    0.000    0.000    0.000 {method 'to_array' of 'pandas.hashtable.ObjectVector' objects}
+        1    0.000    0.000    0.000    0.000 generic.py:1900(<lambda>)
+        2    0.000    0.000    0.000    0.000 internals.py:3360(<lambda>)
+        1    0.000    0.000    0.000    0.000 groupby.py:2059(_is_label_like)
+        2    0.000    0.000    0.000    0.000 posixpath.py:51(normcase)
+        1    0.000    0.000    0.000    0.000 generic.py:1898(_is_mixed_type)
+        1    0.000    0.000    0.000    0.000 merge.py:884(_get_result_dim)
+        1    0.000    0.000    0.000    0.000 nanops.py:209(_view_if_needed)
+        1    0.000    0.000    0.000    0.000 strings.py:904(__init__)
+        1    0.000    0.000    0.000    0.000 internals.py:78(_is_single_block)
+        1    0.000    0.000    0.000    0.000 groupby.py:576(__iter__)
+        1    0.000    0.000    0.000    0.000 frame.py:4204(_get_agg_axis)
+        1    0.000    0.000    0.000    0.000 groupby.py:1168(__init__)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 {method 'itervalues' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 groupby.py:1263(names)
+        1    0.000    0.000    0.000    0.000 {callable}
+        1    0.000    0.000    0.000    0.000 nanops.py:129(_get_fill_value)

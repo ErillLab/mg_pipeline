@@ -53,9 +53,6 @@ docs/_build/
 # PyBuilder
 target/
 
-# Sandbox
-data/
-tests/
-
-# Data files
-#*.csv
+# Misc
+#data/
+#sandbox/
