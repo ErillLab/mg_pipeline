@@ -120,7 +120,7 @@ class PSSMScorer:
             scores = np.hstack(scores) # convert to vector
         return scores
 
-    def initialize_estimator(self, num_random=50000):
+    def initialize_estimator(self, bg_mu=None, bg_sigma=None, num_random=100000):
         """ Initializes the parameters for the Bayesian estimator. """
         # Parameters
         self.pf = 1 / 100.0 # foreground probability
@@ -130,14 +130,21 @@ class PSSMScorer:
         
         # Score motif sequences to estimate foreground
         pssm_scores = self.score_self(True)
+        mu_y, sigma_y = np.mean(pssm_scores), np.std(pssm_scores)
         
-        # Generate random background scores
-        # TODO: Read this off the PSSM
-        background_scores = np.array([self.score(random_seq(self.length), True) for i in xrange(int(num_random))])
+        # Background
+        mu_x = bg_mu
+        sigma_x = bg_sigma
+        if bg_mu is None or bg_sigma is None:
+            # Generate random background scores
+            # TODO: Read this off the PSSM
+            background_scores = np.array([self.score(random_seq(self.length), True) for i in xrange(int(num_random))])
+            if bg_mu is None:
+                mu_x = np.mean(background_scores)
+            if bg_sigma is None:
+                sigma_x = np.std(background_scores)
         
         # Distributions
-        mu_y, sigma_y = np.mean(pssm_scores), np.std(pssm_scores)
-        mu_x, sigma_x = np.mean(background_scores), np.std(background_scores)
         pdf_y = scipy.stats.distributions.norm(mu_y, sigma_y).pdf
         pdf_x = scipy.stats.distributions.norm(mu_x, sigma_x).pdf
         

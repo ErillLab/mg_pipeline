@@ -14,7 +14,7 @@ import numpy as np
 from multiprocessing import Pool
 
 #%% Configuration
-pssm = Firmicutes_LexA
+pssm = GammaProteobacteria_LexA
 samples = get_all_with_scores(pssm)
 n_processes = 8
 
@@ -51,3 +51,10 @@ totals = np.sum(result, axis=0)
 p.close()
 sigma = np.sqrt(totals[0] / totals[1])
 print "sigma = %f [%.2fs | %.2fs / sample]" % (sigma, time() - t, (time() - t) / len(samples))
+
+#%% Results:
+#Firmicutes_LexA [16 bp | 79 seqs]
+#mu = -17.918493763638413
+#sigma = 8.2211415419612841
+#
+# 
