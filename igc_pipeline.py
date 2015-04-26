@@ -560,6 +560,10 @@ def get_operons(sample):
     else:
         return predict_operons(sample)
 
+def get_genes2operon(genes, operons):
+    """ Returns a series that maps gene names to the operons they belong. """
+    return pd.Series(index=np.hstack(operons.genes), data=np.repeat(operons.index.values, operons.genes.map(len)))
+
 #%% PSSM scoring
 def score_sample(sample, PSSM, overwrite=False):
     """ Scores the promoters of all the operons in a sample using the PSSM. 
