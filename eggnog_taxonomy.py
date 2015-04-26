@@ -9,6 +9,7 @@ from igc_pipeline import *
 from Bio import Entrez
 from tqdm import tqdm
 from glob import glob
+import os
 
 #%% Configuration
 # Paths
@@ -33,8 +34,7 @@ log("Loaded eggNOG data files.", t)
 
 #%% Find not BLASTed
 samples = get_all_samples()
-blasted = [p.replace(blast_out_path, "").replace(".tbl", "") for p in glob(blast_out_path + "*.tbl")]
-
+blasted = [p.replace(blast_out_path, "").replace(".tbl", "") for p in glob(blast_out_path + "*.tbl") if os.stat(p).st_size > 0]
 not_blasted = [sample for sample in samples if sample not in blasted]
 
 #%% Processing functions

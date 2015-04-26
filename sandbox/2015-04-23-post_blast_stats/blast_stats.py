@@ -33,14 +33,16 @@ for sample in tqdm(samples):
     genes = load_sample_genes(sample)
     
     # COGs
+    if "eggNOG_old" not in genes:
+        continue
     COGs = COGs.add(genes.groupby("eggNOG").size(), fill_value=0)
     idx = genes.eggNOG_old != "unknown"
     COG_stats.no_change += sum(genes.eggNOG_old[idx] == genes.eggNOG[idx])
     COG_stats.updated += sum((genes.eggNOG[idx] != genes.eggNOG_old[idx]) & ~genes.eggNOG[idx].isnull())
     COG_stats.dropped += sum(genes.eggNOG.isnull() & idx)
+    COG_stats.old_total += sum(idx) # old_total = updated + no_change + dropped
     COG_stats.missing += sum(genes.eggNOG.isnull())
     COG_stats.total += sum(~genes.eggNOG.isnull()) # total = updated + no_change
-    COG_stats.old_total += sum(idx) # old_total = updated + no_change + dropped
     
     # Taxonomy
     for level in levels:
@@ -58,9 +60,9 @@ for sample in tqdm(samples):
             tax_stats["new"][level] += sum(~genes[level].isnull())
 
 #%% Save
-COGs.to_csv("2014-04-23-COGs.csv")
+COGs.to_csv("2015-04-23-COGs.csv")
 for level in levels:
-    taxonomy[level].to_csv("2014-04-23-Taxonomy_%s.csv" % level)
+    taxonomy[level].to_csv("2015-04-23-Taxonomy_%s.csv" % level)
 
 #%% Analyze
 print "Samples: %d" % num_samples

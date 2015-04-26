@@ -25,7 +25,7 @@ else:
     
 #%% Configuration
 # Output verbosity
-verbosity = 2 # 0 = no output, 1 = minimal, 2 = debugging
+verbosity = 1 # 0 = no output, 1 = minimal, 2 = debugging
 
 # Base paths
 base_path = "/home/cuda/2TB/metagenomics/" # metagenomics folder
@@ -545,6 +545,20 @@ def predict_operons(sample, overwrite=False):
     log("Predicted %d operons for %s." % (operons.shape[0], sample), t)
     return operons
 
+def get_operons(sample):
+    """ Returns the operons for a sample if it exists. """
+    
+    # Get path
+    operons_path = get_sample_paths(sample)["operons"]
+    
+    # Check for cache
+    if os.path.exists(operons_path):
+        t = time()
+        operons = pd.read_csv(operons_path, index_col=0, converters={'genes':ast.literal_eval})
+        log("Loaded %d cached operons from %s." % (operons.shape[0], sample), t, 2)
+        return operons
+    else:
+        return predict_operons(sample)
 
 #%% PSSM scoring
 def score_sample(sample, PSSM, overwrite=False):
@@ -571,7 +585,7 @@ def score_sample(sample, PSSM, overwrite=False):
         return get_sample_scores(sample, PSSM)
         
     # Load operons for sample
-    operons = predict_operons(sample)
+    operons = get_operons(sample)
     
     # Extract promoters and capitalize
     seqs = operons.promoter_seq.str.upper()
@@ -594,35 +608,58 @@ def score_sample(sample, PSSM, overwrite=False):
         
     # Save to HDF5
     t = time()
-    scores.to_hdf(sample_scores_path, "table", append=False, mode="w")
+    scores.to_hdf(sample_scores_path, "table", format="fixed", append=False, mode="w")
     log("Saved scores for %s: %s" % (sample, sample_scores_path), t, 1)
     
     return scores
-
-def get_sample_scores(sample, PSSM_name):
-    """ Loads scores for a given sample and PSSM name. """
     
-    # Validate sample name
-    sample = get_unique_sample(sample)
+def get_scores_path(sample, PSSM_name):
+    """ Returns the path to the scores for the given sample and PSSM name. """
     
     # Get name from PSSM instance
     if isinstance(PSSM_name, PSSMScorer):
         PSSM_name = PSSM_name.name
-        
-    # Build path
+    
+    # Validate sample name
+    sample = get_unique_sample(sample)
+    
+    # Get data file path
     pssm_scores_path = scores_path + PSSM_name + "/"
-    sample_scores_path = pssm_scores_path + "/" + sample + ".h5"
+    sample_scores_path = pssm_scores_path + sample + ".h5"
+    
+    return sample_scores_path
+    
+def get_sample_scores(sample, PSSM_name, soft_max=True):
+    """ Loads scores for a given sample and PSSM name. """
+    
+    # Get path to scores
+    sample_scores_path = get_scores_path(sample, PSSM_name)
     
     # Check if file exists
-    if not os.path.exists(sample_scores_path):
+    if not has_score(sample, PSSM_name):
         raise EnvironmentError("Scores could not be found.")
         
     # Load scores
     t = time()
     scores = pd.read_hdf(sample_scores_path, "table")
-    log("Loaded cached %s scores for %s." % (PSSM_name, sample), t)
+    
+    # Take soct max
+    if soft_max:
+        scores = scores.applymap(np.exp).sum(1).map(np.log)
+    
+    log("Loaded cached %s scores for %s." % (PSSM_name, sample), t, 2)
     
     return scores
+    
+def has_score(sample, PSSM_name):
+    """ Returns True if the sample has scores under a PSSM name. """
+    # Check if file exists
+    return os.path.exists(get_scores_path(sample, PSSM_name))
+
+def get_all_with_scores(PSSM_name):
+    """ Returns a list with the names of all samples that have a score for the
+    given PSSM name. """
+    return [sample for sample in get_all_samples() if has_score(sample, PSSM_name)]
 
 #%% Summary stats
 def get_sample_summary(sample, PSSM):
