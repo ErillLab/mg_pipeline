@@ -51,6 +51,7 @@ binding_sites_path = base_path + "binding_sites/"
 Firmicutes_LexA = PSSMScorer(binding_sites_path + "Firmicutes_LexA.txt")
 Firmicutes_LexA.initialize_estimator(bg_mu=-17.918493763638413, bg_sigma=8.2211415419612841)
 GammaProteobacteria_LexA = PSSMScorer(binding_sites_path + "GammaProteobacteria_LexA.txt")
+GammaProteobacteria_LexA.initialize_estimator(bg_mu=-21.255309202895585, bg_sigma=8.4957957386487664)
 
 # Score results
 scores_path = IGC_path + "Scores/"

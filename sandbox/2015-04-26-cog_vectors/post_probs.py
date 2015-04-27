@@ -61,7 +61,7 @@ assert(conc_prob == sep_prob)
 
 #%% Multiple samples
 LL_ratios = pd.Series()
-for sample in tqdm(samples):
+for sample in tqdm(samples[0:400]):
     genes = load_sample_genes(sample)
     if "eggNOG_old" not in genes:
         continue
@@ -70,7 +70,7 @@ for sample in tqdm(samples):
     genes2operon = get_genes2operon(genes, operons)
 
     #TODO: Filter by head completeness
-    #operons.head_completeness == "Lack 5'-end"
+    #scores.get(operons.head_completeness != "Lack 5'-end").dropna()
     # Group genes by COG
     grouped = genes.reset_index().groupby("eggNOG")
     
