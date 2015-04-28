@@ -467,6 +467,19 @@ def parse_ORFs(sample, overwrite=False):
     
     return ORFs
     
+def get_ORFs(sample):
+    """ Loads the ORFs for a sample. """
+    t = time()
+    
+    # Get unique sample and paths
+    sample = get_unique_sample(sample)
+    sample_paths = get_sample_paths(sample)
+    
+    # Check for cache
+    if os.path.exists(sample_paths["ORFs"]):
+        ORFs = pd.read_csv(sample_paths["ORFs"], index_col=0)
+        log("Loaded %d cached ORFs from %s." % (ORFs.shape[0], sample), t, 2)
+        return ORFs
     
 def predict_operons(sample, overwrite=False):
     """ Predicts operons for the given sample. 

@@ -13,7 +13,9 @@ import pandas as pd
 import numpy as np
 
 #%% Configuration
-samples = get_all_samples(HMP=False).index.tolist()
+#samples = get_all_samples(HMP=False).index.tolist()
+samples = get_all_samples(HMP=False).index.tolist()[0:100]
+#samples = get_MetaHit()[0:85]
 
 # From Cornish et al. (2014)
 putative_cogs = ["COG0389", "COG0468", "COG0556", "COG1974", "COG0210", "COG2001", "COG0732", "COG0178", "COG0187", "COG4974", "COG0632", "COG0497", "COG0399", "COG0653", "COG1136", "COG0463", "COG1609", "COG0745", "COG0582"]
@@ -25,15 +27,28 @@ def get_cog_probs(samples, pssm):
     n = pd.Series()
     cog_probs = pd.DataFrame(columns=["n", "post_prob"])
     for sample in tqdm(samples):
-        genes = load_sample_genes(sample)
-        if "eggNOG_old" not in genes:
+        try:
+            genes = load_sample_genes(sample)
+            if "class" not in genes:
+                continue
+            operons = get_operons(sample)
+            scores = get_sample_scores(sample, pssm)
+            genes2operon = get_genes2operon(genes, operons)
+        except:
             continue
-        operons = get_operons(sample)
-        scores = get_sample_scores(sample, pssm)
-        genes2operon = get_genes2operon(genes, operons)
-    
-        #TODO: Filter by head completeness
-        #scores.get(operons.head_completeness != "Lack 5'-end").dropna()
+        
+        # Filter by head completeness
+        genes = genes.loc[np.unique(np.hstack(operons.genes[operons.head_completeness != "Lack 5'-end"]))].dropna(how="all")
+        genes.index.name = "gene_name"
+        
+        # Filter by taxonomy
+        #genes = genes[genes.phylum == "Firmicutes"]
+        genes = genes[genes["class"] == "Gammaproteobacteria"]
+        
+        # Use old assignments
+        genes["eggNOG"] = genes["eggNOG_old"]
+        assert (genes["eggNOG"] == genes["eggNOG_old"]).all()
+        
         # Group genes by COG
         grouped = genes.reset_index().groupby("eggNOG")
         
@@ -52,7 +67,51 @@ def get_cog_probs(samples, pssm):
     cog_probs.sort("post_prob", ascending=False, inplace=True)
     cog_probs.n = n
     return cog_probs
-    
+
+def plot_cogs(cogs):
+    k = len(cogs)
+    plt.figure()
+    plt.bar(range(k), cogs)
+    plt.xticks(np.arange(k) + 0.5, cogs.index, rotation="vertical")
+    plt.ylim(0, 1)
+    plt.subplots_adjust(bottom=0.20)
+    plt.ylabel("Posterior probability of being regulated")
+
 #%% Compare
-Firmicutes_probs = get_cog_probs(samples[0:10], Firmicutes_LexA)
-Gamma_probs = get_cog_probs(samples[0:10], GammaProteobacteria_LexA)
+Firmicutes_probs = get_cog_probs(samples, Firmicutes_LexA)
+Firmicutes_probs.to_csv("Firmicutes_probs_0-100_tax-filtered_head-filtered_old.csv")
+
+#Gamma_probs = get_cog_probs(samples[0:100], GammaProteobacteria_LexA)
+#Gamma_probs.to_csv("Gamma_probs_0-100_tax-filtered_head-filtered.csv")
+
+#%% Merge
+#cog_probs = Firmicutes_probs.copy().rename(columns={"post_prob": "post_prob_Firmicutes"})
+#cog_probs["post_prob_Gamma"] = Gamma_probs.post_prob
+#cog_probs.to_csv("LexA-Firmicutes_vs_Gammaproteobacteria.csv")
+
+#%% Load and merge
+#cog_probs = pd.merge(pd.read_csv("Firmicutes_probs_0-100.csv", index_col="eggNOG"), pd.read_csv("Gamma_probs_0-100.csv", index_col="eggNOG", usecols=["eggNOG", "post_prob"]), left_index=True, right_index=True, suffixes=("_Firmicutes", "_Gamma"))
+#cog_probs.to_csv("LexA-Firmicutes_vs_Gammaproteobacteria_0-100.csv")
+
+#%% Plot
+plot_figs = False
+if plot_figs:
+    # Top Firmicutes
+    plot_cogs(Firmicutes_probs.post_prob.sort(ascending=False, inplace=False).head(25))
+    plt.title(Firmicutes_LexA)
+    
+    # Top Gamma
+    plot_cogs(cog_probs.post_prob_Gamma.sort(ascending=False, inplace=False).head(25))
+    plt.title(GammaProteobacteria_LexA)
+    
+    # Putative Firmicutes
+    plot_cogs(cog_probs.post_prob_Firmicutes[putative_cogs])
+    
+    # Putative Gamma
+    plot_cogs(cog_probs.post_prob_Gamma[putative_cogs])
+    
+    # SOS Firmicutes
+    plot_cogs(cog_probs.post_prob_Firmicutes[SOS_cogs])
+    
+    # SOS Gamma
+    plot_cogs(cog_probs.post_prob_Gamma[SOS_cogs])
