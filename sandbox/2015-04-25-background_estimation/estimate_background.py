@@ -14,7 +14,7 @@ import numpy as np
 from multiprocessing import Pool
 
 #%% Configuration
-pssm = GammaProteobacteria_LexA
+pssm = Grampos_LexA
 samples = get_all_with_scores(pssm)
 n_processes = 8
 

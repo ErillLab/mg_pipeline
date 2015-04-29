@@ -14,6 +14,7 @@ import ast
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from Bio import SeqIO
 from PSSMScorer import PSSMScorer
 
@@ -52,6 +53,8 @@ Firmicutes_LexA = PSSMScorer(binding_sites_path + "Firmicutes_LexA.txt")
 Firmicutes_LexA.initialize_estimator(bg_mu=-17.918493763638413, bg_sigma=8.2211415419612841)
 GammaProteobacteria_LexA = PSSMScorer(binding_sites_path + "GammaProteobacteria_LexA.txt")
 GammaProteobacteria_LexA.initialize_estimator(bg_mu=-21.255309202895585, bg_sigma=8.4957957386487664)
+Grampos_LexA = PSSMScorer(binding_sites_path + "Grampositive_LexA.txt")
+Firmicutes_Actino_LexA = PSSMScorer(binding_sites_path + "Firmicutes_Actinobacteria_LexA.txt")
 
 # Score results
 scores_path = IGC_path + "Scores/"
@@ -580,7 +583,7 @@ def get_genes2operon(genes, operons):
     return pd.Series(index=np.hstack(operons.genes), data=np.repeat(operons.index.values, operons.genes.map(len)))
 
 #%% PSSM scoring
-def score_sample(sample, PSSM, overwrite=False):
+def score_sample(sample, PSSM, overwrite=False, soft_max=False):
     """ Scores the promoters of all the operons in a sample using the PSSM. 
     
     Args:
@@ -615,7 +618,8 @@ def score_sample(sample, PSSM, overwrite=False):
     log("Scored %s: %d sequences, %d bp." % (sample, len(seqs), seqs.apply(len).sum()), t, 1)
     
     # Compute soft-max
-    scores["soft_max"] = scores.applymap(np.exp).sum(1).map(np.log)
+    if soft_max:
+        scores["soft_max"] = scores.applymap(np.exp).sum(1).map(np.log)
     
     # Check if containing folder exists
     if not os.path.exists(pssm_scores_path):

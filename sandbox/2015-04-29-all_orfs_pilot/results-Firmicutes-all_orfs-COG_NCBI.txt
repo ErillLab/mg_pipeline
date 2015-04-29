@@ -1,0 +1,19 @@
+Sample: MH0001
+Total LexA genes: 8
+LexA genes (head complete): 6
+LexA genes (head complete + Firmicutes + Actino): 3
+LexA operons: 3
+PSSM: Firmicutes_LexA [16 bp | 79 seqs]
+LexA scores (sample): mean = -15.32, std = 7.76, max = 14.14
+LexA LL (sample): 0.582342529467
+LexA prob (sample): 0.0170497430158
+
+Sample: MH0002
+Total LexA genes: 43
+LexA genes (head complete): 30
+LexA genes (head complete + Firmicutes + Actino): 6
+LexA operons: 6
+PSSM: Firmicutes_LexA [16 bp | 79 seqs]
+LexA scores (sample): mean = -17.87, std = 7.99, max = 11.18
+LexA LL (sample): 80.4274033617
+LexA prob (sample): 0.000125575876327

@@ -68,9 +68,9 @@ def get_cog_probs(samples, pssm):
     cog_probs.n = n
     return cog_probs
 
-def plot_cogs(cogs):
+def plot_cogs(cogs, **kwargs):
     k = len(cogs)
-    plt.figure()
+    plt.figure(**kwargs)
     plt.bar(range(k), cogs)
     plt.xticks(np.arange(k) + 0.5, cogs.index, rotation="vertical")
     plt.ylim(0, 1)
@@ -78,8 +78,8 @@ def plot_cogs(cogs):
     plt.ylabel("Posterior probability of being regulated")
 
 #%% Compare
-Firmicutes_probs = get_cog_probs(samples, Firmicutes_LexA)
-Firmicutes_probs.to_csv("Firmicutes_probs_0-100_tax-filtered_head-filtered_old.csv")
+#Firmicutes_probs = get_cog_probs(samples, Firmicutes_LexA)
+#Firmicutes_probs.to_csv("Firmicutes_probs_0-100_tax-filtered_head-filtered_old.csv")
 
 #Gamma_probs = get_cog_probs(samples[0:100], GammaProteobacteria_LexA)
 #Gamma_probs.to_csv("Gamma_probs_0-100_tax-filtered_head-filtered.csv")
@@ -94,24 +94,36 @@ Firmicutes_probs.to_csv("Firmicutes_probs_0-100_tax-filtered_head-filtered_old.c
 #cog_probs.to_csv("LexA-Firmicutes_vs_Gammaproteobacteria_0-100.csv")
 
 #%% Plot
-plot_figs = False
+Firmicutes_probs = pd.read_csv("Firmicutes_probs_0-1000_tax-filtered_head-filtered.csv", index_col="eggNOG")
+Gamma_probs = pd.read_csv("Gamma_probs_0-1000_tax-filtered_head-filtered.csv", index_col="eggNOG")
+plot_figs = True
 if plot_figs:
     # Top Firmicutes
     plot_cogs(Firmicutes_probs.post_prob.sort(ascending=False, inplace=False).head(25))
-    plt.title(Firmicutes_LexA)
+    plt.title("Top COGs\n"+str(Firmicutes_LexA))
+    #plt.tight_layout()
     
     # Top Gamma
-    plot_cogs(cog_probs.post_prob_Gamma.sort(ascending=False, inplace=False).head(25))
-    plt.title(GammaProteobacteria_LexA)
+    plot_cogs(Gamma_probs.post_prob.sort(ascending=False, inplace=False).head(75), figsize=[12.0, 5.5])
+    plt.title("Top COGs\n"+str(GammaProteobacteria_LexA))
+    #plt.tight_layout()
     
     # Putative Firmicutes
-    plot_cogs(cog_probs.post_prob_Firmicutes[putative_cogs])
+    plot_cogs(Firmicutes_probs.post_prob[putative_cogs])
+    plt.title("Top putative COGs from Cornish et al. (2014)\n"+str(Firmicutes_LexA))
+    #plt.tight_layout()
     
     # Putative Gamma
-    plot_cogs(cog_probs.post_prob_Gamma[putative_cogs])
+    plot_cogs(Gamma_probs.post_prob[putative_cogs])
+    plt.title("Top putative COGs from Cornish et al. (2014)\n"+str(GammaProteobacteria_LexA))
+    #plt.tight_layout()
     
     # SOS Firmicutes
-    plot_cogs(cog_probs.post_prob_Firmicutes[SOS_cogs])
+    plot_cogs(Firmicutes_probs.post_prob[SOS_cogs], figsize=[15.0, 5.5])
+    plt.title("SOS Regulon-associated COGs from Cornish et al. (2014)\n"+str(Firmicutes_LexA))
+    #plt.tight_layout()
     
     # SOS Gamma
-    plot_cogs(cog_probs.post_prob_Gamma[SOS_cogs])
+    plot_cogs(Gamma_probs.post_prob[SOS_cogs], figsize=[15.0, 5.5])
+    plt.title("SOS Regulon-associated COGs from Cornish et al. (2014)\n"+str(GammaProteobacteria_LexA))
+    #plt.tight_layout()

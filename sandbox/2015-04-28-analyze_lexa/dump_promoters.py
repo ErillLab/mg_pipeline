@@ -20,11 +20,12 @@ SOS_cogs = ["COG0174", "COG0177", "COG0178", "COG0187", "COG0210", "COG0214", "C
 # Configuration
 pssm = Firmicutes_LexA
 lexa_cog = "COG1974"
+reca_cog = "COG0468"
 
 samples = get_all_samples(HMP=False).index.tolist()[0:100]
 
 #%%
-def get_promoters(sample):
+def get_promoters(sample, cog=lexa_cog):
     # Load data
     genes = load_sample_genes(sample)
     operons = get_operons(sample)
@@ -37,23 +38,25 @@ def get_promoters(sample):
     genes = genes[genes.phylum == "Firmicutes"]
     #genes = genes[genes["class"] == "Gammaproteobacteria"]
     
-    # Get LexA genes
-    lexa_genes = genes[genes["eggNOG"] == lexa_cog]
-    lexa_gene_names = lexa_genes.index.tolist()
+    # Get COG genes
+    cog_genes = genes[genes["eggNOG"] == cog]
+    cog_gene_names = cog_genes.index.tolist()
     
-    # Get LexA operons
-    lexa_operons = operons.loc[genes2operon[lexa_gene_names]]
+    # Get COG operons
+    cog_operons = operons.loc[genes2operon[cog_gene_names]]
     
-    return lexa_operons.promoter_seq
+    return cog_operons.promoter_seq
     
 #%%
+cog = reca_cog
+
 promoter_ids = []
 promoters_fasta = ""
 for sample in tqdm(samples):
-    promoter_seqs = get_promoters(sample)
+    promoter_seqs = get_promoters(sample, cog)
     for operon, seq in promoter_seqs.iteritems():
         promoter_id = "%s|%d" % (sample, operon)
         if promoter_id not in promoter_ids:        
             promoters_fasta += ">%s\n%s\n" % (promoter_id, seq)
             promoter_ids.append(promoter_id)
-open("LexA_promoters-Firmicutes-0-100.fa", "w").write(promoters_fasta)
+open("RecA_promoters-Firmicutes-0-100.fa", "w").write(promoters_fasta)

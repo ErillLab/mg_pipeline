@@ -1,0 +1,32 @@
+,genes_only,all_orfs
+Sample, MH0001, MH0001
+Total LexA genes,3,7
+LexA genes (head complete),3,5
+LexA genes (head complete + Firmicutes + Actino),3,5
+LexA operons,3,5
+PSSM, Firmicutes_LexA [16 bp | 79 seqs], Firmicutes_LexA [16 bp | 79 seqs]
+LexA scores (sample)," mean = -15.32, std = 7.76, max = 14.14"," mean = -15.70, std = 7.80, max = 14.14"
+LexA LL (sample),0.582342529,0.74059928
+LexA prob (sample),0.017049743,0.01345545
+,,
+,genes_only,all_orfs
+Sample, MH0002, MH0002
+Total LexA genes,6,26
+LexA genes (head complete),5,21
+LexA genes (head complete + Firmicutes + Actino),4,18
+LexA operons,4,18
+PSSM, Firmicutes_LexA [16 bp | 79 seqs], Firmicutes_LexA [16 bp | 79 seqs]
+LexA scores (sample)," mean = -18.17, std = 7.95, max = 9.81"," mean = -17.66, std = 8.15, max = 18.03"
+LexA LL (sample),32.11018537,3.47986181
+LexA prob (sample),0.000314474,0.002894303
+,,
+,genes_only,all_orfs
+Sample, MH0003, MH0003
+Total LexA genes,3,28
+LexA genes (head complete),3,24
+LexA genes (head complete + Firmicutes + Actino),3,22
+LexA operons,3,22
+PSSM, Firmicutes_LexA [16 bp | 79 seqs], Firmicutes_LexA [16 bp | 79 seqs]
+LexA scores (sample)," mean = -18.14, std = 8.38, max = 13.21"," mean = -18.65, std = 8.17, max = 16.10"
+LexA LL (sample),1.154177461,232.4359427
+LexA prob (sample),0.008675768,4.35E-05
