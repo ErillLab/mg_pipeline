@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+This script handles integrating the results from BLASTing IGC ORFs and/or genes
+against the eggNOG database to get COG and taxonomy assignments.
+
+These values are stored in the genes tables for each sample. See 
+save_sample_genes() and load_sample_genes() in igc_pipeline for gene table
+creation and usage.
+
 Created on Thu Apr 23 18:26:07 2015
 
 @author: Talmo
@@ -16,7 +23,7 @@ import os
 eggnog_path = "/home/cuda/2TB/eggNOG/"
 members_path = eggnog_path + "NOG.members.txt"
 funccats_path = eggnog_path + "NOG.funccat.txt"
-blast_out_path = IGC_path + "Taxonomy_BLAST/has_cog-eggNOG/"
+blast_out_path = IGC_path + "BLAST/has_cog-eggNOG/"
 
 # NCBI
 Entrez.email = "erill@umbc.edu"

@@ -29,7 +29,7 @@ SOS_cogs = ["COG0174", "COG0177", "COG0178", "COG0187", "COG0210", "COG0214", "C
 pssm = Firmicutes_LexA
 lexa_cog = "COG1974"
 use_old = False
-sample = "MH0011"
+sample = "MH0016"
 
 #%% Cache data files
 t = time()

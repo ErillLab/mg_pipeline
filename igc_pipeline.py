@@ -18,12 +18,6 @@ from tqdm import tqdm
 from Bio import SeqIO
 from PSSMScorer import PSSMScorer
 
-# From the timeit module:
-if sys.platform == 'win32':
-    time = time.clock # On Windows, the best timer is time.clock
-else:
-    time = time.time # On most other platforms the best timer is time.time
-    
 #%% Configuration
 # Output verbosity
 verbosity = 1 # 0 = no output, 1 = minimal, 2 = debugging
@@ -66,7 +60,13 @@ promoter_region = (-250, +50) # bp relative to gene start
 # BLASTing
 blast_columns = ["query", "hit", "percentage_identity", "alignment_length", "num_mismatches", "num_gap_openings", "q.start", "q.end", "s.start", "s.end", "e_value", "score_bits"]
 
-#%% General
+#%% General functions
+# From the timeit module:
+if sys.platform == 'win32':
+    time = time.clock # On Windows, the best timer is time.clock
+else:
+    time = time.time # On most other platforms the best timer is time.time
+    
 def log(msg, start_time=None, verbosity_level=1):
     """ Convenience function for printing pipeline messages.
     
@@ -88,56 +88,72 @@ def log(msg, start_time=None, verbosity_level=1):
             msg = msg + " [%.2fs]" % (time() - start_time)
         print msg
 
+#%% Samples and paths
 # Load pre-processed samples index
-samples_index = pd.read_csv(samples_index_path, index_col="sample")
-samples_aliases = samples_index["alias"].reset_index().set_index("alias")
-data_samples = samples_index[~(samples_index.Assemblies_filenames.isnull() | samples_index.ORFs_filenames.isnull())]
+samples_index = pd.read_csv(samples_index_path, index_col="sample").dropna()
+all_samples = samples_index.index.tolist()
 
-def get_unique_sample(query_sample, error=False):
+# Build dictionary mapping all sample names and aliases to a unique sample name
+sample_aliases = samples_index.index.to_series().to_dict()
+sample_aliases.update(samples_index.alias.reset_index().set_index("alias").sample.to_dict())
+
+def get_unique_sample_name(query_sample, error_not_found=False):
     """ Returns a unique sample name by resolving ambiguity with aliases.
     
     Args:
         query_sample: str
-            Sample name to look up
+            Sample name or alias
+        error_not_found: bool, default False
+            If True, raises LookupError if query_sample is not found.
             
     Returns:
-        sample: str
-            Unique sample name that indexes into samples_index table.
-            Returns None if query_sample is not found or raises LookupError.
+        unique_sample: str
+            Unique and unambiguous sample name or None.
+            This can be used to index into the samples_index table.
             
     Example:
-        >>> get_unique_sample("MH192")
+        >>> get_unique_sample_name("MH192")
         'MH0192'
-        >>> samples_index.loc[get_unique_sample("MH192")]
+        >>> samples_index.loc[get_unique_sample_name("MH192")]
         ...
     """
-    
-    if query_sample in samples_index.index:
-        # Sample name is already unique
-        return query_sample
-    elif query_sample in samples_aliases.index:
-        # Get sample name from alias
-        return samples_aliases.at[query_sample, "sample"]
+    if query_sample in sample_aliases.keys():
+        return sample_aliases[query_sample]
+    elif error_not_found:
+        raise LookupError("Sample not found: %s" % query_sample)
     else:
-        # Sample name wasn't found
-        if error:
-            raise LookupError("Sample not found: %s" % query_sample)
         return None
 
-def get_sample_paths(sample):
+def get_sample_info(sample):
+    """ Returns information about a sample.
+    
+    Args:
+        sample: str
+            Sample name or alias.
+            
+    Returns:
+        sample_info: Series
+            Sample information from samples_index table, e.g.:
+                alias, SRA ID, BioSample ID, study, NCBI taxon ID/name, ...
+    """
+    sample_name = get_unique_sample_name(sample)
+    sample_info = pd.Series({"sample": sample_name}).append(samples_index.loc[sample_name])
+    return sample_info
+
+def get_sample_paths(sample, original_paths=False):
     """ Returns paths to sample data files. 
     
     Args:
         sample: str
-            Sample to query.
-            This name will be disambiguated by get_unique_sample().
-            Raises an exception if not found.
+            Sample or alias. Raises an exception if not found.
+        use_original: bool, default False
+            If True, uses the original filenames from the downloaded files.
+            If False, assumes ``standardize_paths()`` has renamed the files.
             
     Returns:
         paths: Series
             Absolute paths to the files associated with the sample. Keys:
             
-            :sample: Unique sample name (see ``get_unique_sample()``)
             :scaftigs: Assembled scaftigs (in ``scaftigs_path``)
             :ORFs_fasta: ORF FASTA files (in ``orfs_fasta_path``)
             :genes: Summary of genes in sample (see ``save_sample_genes()``)
@@ -147,20 +163,25 @@ def get_sample_paths(sample):
     Example:
         >>> get_sample_paths('MH192')
         scaftigs      /home/cuda/2TB/metagenomics/IGC/4.IndividualAs...
-        ORFs_fasta    /home/cuda/2TB/metagenomics/IGC/4.IndividualAs...
+        ORFs_fasta    /home/cuda/2TB/metagenomics/IGC/5.IndividualOR...
         genes          /home/cuda/2TB/metagenomics/IGC/Genes/MH0192.csv
         ORFs            /home/cuda/2TB/metagenomics/IGC/ORFs/MH0192.csv
         operons       /home/cuda/2TB/metagenomics/IGC/Operons/MH0192...
-        dtype: object
+        Name: MH0192, dtype: object
     """
-    paths = pd.Series()
-    
     # Get unique sample name
-    sample = get_unique_sample(sample, True)
+    sample = get_unique_sample_name(sample, True)
     
-    # IGC Data
-    paths["scaftigs"] = scaftigs_path + samples_index.at[sample, "Assemblies_filenames"]
-    paths["ORFs_fasta"] = orfs_fasta_path + samples_index.at[sample, "ORFs_filenames"]
+    # Initialize paths Series
+    paths = pd.Series(name=sample)
+    
+    # IGC data
+    if original_paths:
+        paths["scaftigs"] = scaftigs_path + samples_index.at[sample, "Assemblies_filenames"]
+        paths["ORFs_fasta"] = orfs_fasta_path + samples_index.at[sample, "ORFs_filenames"]
+    else:
+        paths["scaftigs"] = scaftigs_path + sample + ".fna"
+        paths["ORFs_fasta"] = orfs_fasta_path + sample + ".fna"
     
     # Processed data
     paths["genes"] = genes_path + sample + ".csv"
@@ -171,6 +192,42 @@ def get_sample_paths(sample):
     paths = paths.apply(os.path.abspath)
     
     return paths
+
+def standardize_paths(sample):
+    """ Renames the data files for a sample to their unique sample name.
+    
+    Affects scaftigs (assemblies) and ORF sequence FASTA files.
+    
+    Args:
+        sample: str
+            Sample or alias
+    """
+    # Get paths
+    original_paths = get_sample_paths(sample, original_paths=True)
+    new_paths = get_sample_paths(sample, original_paths=False)
+    
+    # Rename scaftigs
+    if not os.path.exists(new_paths["scaftigs"]):
+        if os.path.exists(original_paths["scaftigs"]):
+            try:
+                os.rename(original_paths["scaftigs"], new_paths["scaftigs"])
+                log("Renamed assembled scaftig for sample %s." % sample, verbosity_level=2)
+            except:
+                log("Could not rename original assembled scaftig for sample %s." % sample, verbosity_level=1)
+        else:
+            log("Could not find original assembled scaftig for sample %s." % sample, verbosity_level=1)
+    
+    # Rename ORF sequences
+    if not os.path.exists(new_paths["ORFs_fasta"]):
+        if os.path.exists(original_paths["ORFs_fasta"]):
+            try:
+                os.rename(original_paths["ORFs_fasta"], new_paths["ORFs_fasta"])
+                log("Renamed ORF sequences for sample %s." % sample, verbosity_level=2)
+            except:
+                log("Could not rename original ORF sequences for sample %s." % sample, verbosity_level=1)
+        else:
+            log("Could not find original ORF sequences for sample %s." % sample, verbosity_level=1)
+
 
 def has_data(sample):
     """ Checks if the sample has its data files. 
@@ -188,12 +245,12 @@ def has_data(sample):
 
 def check_samples_data():
     """ Returns a table of all samples and which data files are present. """
-    return data_samples.reset_index().sample.apply(has_data).set_index(data_samples.index)
+    return pd.Series(all_samples, index=all_samples).apply(has_data)
 
-def get_valid_samples():
-    """ Returns a list of all samples that have all data files present. """
-    valid = check_samples_data().all(1)
-    return valid.index[valid].tolist()
+#def get_valid_samples():
+#    """ Returns a list of all samples that have all data files present. """
+#    valid = check_samples_data().all(1)
+#    return valid.index[valid].tolist()
 
 def get_MetaHit(study=2010):
     """ Returns the names of the samples from the MetaHit database. 
@@ -222,13 +279,23 @@ def get_MetaHit(study=2010):
     return samples_index[samples_index.study.str.contains(queries[str(study)])].index.tolist()
 
 def get_all_samples(HMP=True):
+    """ Returns a list of all samples with data. 
+    
+    Args:
+        HMP: bool, default True
+            If False, filters out the samples that belong to the Human
+            Microbiome Project.
+    """
     if not HMP:
-        return data_samples[~data_samples.study.str.contains("Human Microbiome Project")]
-    return data_samples.index.tolist()
+        from_HMP = samples_index.study.str.contains("Human Microbiome Project")
+        return samples_index.index[~from_HMP].index.tolist()
+    return all_samples
+
+#def standardize_paths(sample):
 
 #%% Genes processing
-# Matches all sample names and aliases (use get_unique_sample() to disambiguate)
-samples_regex = "(" + "|".join(set(samples_index.index.tolist() + samples_index.alias.tolist())) + ")"
+# Regular expression that matches all sample names and aliases
+samples_regex = "(" + "|".join(sample_aliases.keys()) + ")"
 def load_gene_summary(limit=None, extract_samples=False):
     """ Loads the integrated gene summary.
     
@@ -301,7 +368,7 @@ def extract_sample(gene_names):
     
     # Get unique names for samples
     t = time()
-    samples = samples.apply(get_unique_sample)
+    samples = samples.apply(get_unique_sample_name)
     v = [1, 2][(time() - t) < 1.0]
     log("Disambiguated sample names.", t, v)
     
@@ -365,21 +432,17 @@ def save_sample_genes(overwrite=False, gene_summary=None):
     log("Saved genes for %d samples individually." % gene_summary.ngroups, t)
 
 def load_sample_genes(sample):
-    """ Loads the genes for a sample. 
+    """ Loads the genes table for a sample.
+    
+    See ``save_sample_genes()`` for table creation.
     
     Args:
         sample: str
-            Sample name to load genes for
-            
+            Sample name or alias
+        
     Returns:
-        sample_genes: DataFrame
-            Table derived from the global gene summary containing information
-            about the genes in the sample.
-            
-            Columns:
-                gene_id, gene_length, completeness, cohort_origin, phylum,
-                genus, kegg, eggNOG, sample_freq, individual_freq, 
-                eggNOG_funccat, kegg_funccat, cohort_assembled, sample
+        genes: DataFrame
+            Listing and information about each called gene in the sample.
      """
     # Get path
     sample_genes_path = get_sample_paths(sample).genes
@@ -392,15 +455,127 @@ def load_sample_genes(sample):
     sample_genes = pd.read_csv(get_sample_paths(sample).genes, index_col="gene_name")
     sample_genes.sort_index(inplace=True)
     return sample_genes
-        
 
-#%% ORF and Operon processing
+def get_genes(sample):
+    """ Loads the genes table for a sample. Shortcut for
+    ``load_sample_genes()``.
+    
+    See ``save_sample_genes()`` for table creation.
+    
+    Args:
+        sample: str
+            Sample name or alias
+        
+    Returns:
+        genes: DataFrame
+            Listing and information about each called gene in the sample.
+    """
+    return load_sample_genes(sample)
+
+#%% Scaftigs
+def get_scaftigs(sample, index_only=False, convert_to_str=True):
+    """ Loads the assembled scaftig nucleotide sequences.
+    
+    Args:
+        sample: str
+            Sample name or alias
+        index_only: bool, default False
+            If True, will read in the whole file and parse it into a dict.
+            If False, will only index the file. This uses less memory by not
+            loading sequences into memory (see Bio.SeqIO.index).
+        convert_to_str: bool, default True
+            Converts Bio.Seq objects to strings. This improves performance
+            by avoiding the overhead of Bio.Seq objects at the cost of utility
+            functions in Bio.Seq. Only applicable when index_only is False.
+    
+    Returns:
+        scaftigs: dict or dict-like
+            The scaftig sequences indexed by their name.
+            Returns None if not found.
+    """
+    t = time()
+    
+    # Get unique sample and paths
+    sample = get_unique_sample_name(sample)
+    file_path = get_sample_paths(sample)["scaftigs"]
+    
+    # Check if file exists
+    if not os.path.exists(file_path):
+        log("Could not find scaftigs for sample %s in: %s" % (sample, file_path), verbosity_level=1)
+        return
+        
+    if index_only:
+        # Create file index
+        scaftigs = SeqIO.index(file_path, "fasta")
+        log("Indexed scaftigs for sample %s." % sample, t, 2)
+    else:
+        # Read and parse file
+        scaftigs = SeqIO.to_dict(SeqIO.parse(file_path, "fasta"))
+        
+        # Downcast to strings
+        if convert_to_str:
+            for scaf, seq in scaftigs.items():
+                scaftigs[scaf] = str(seq.seq).upper()
+        
+        log("Read and parsed scaftigs for sample %s." % sample, t, 2)
+    
+    return scaftigs
+
+#%% ORFs
+def get_ORF_seqs(sample, index_only=False, convert_to_str=True):
+    """ Loads the ORF FASTA nucleotide sequences.
+    
+    Args:
+        sample: str
+            Sample name or alias
+        index_only: bool, default False
+            If True, will read in the whole file and parse it into a dict.
+            If False, will only index the file. This uses less memory by not
+            loading sequences into memory (see Bio.SeqIO.index).
+        convert_to_str: bool, default True
+            Converts Bio.Seq objects to strings. This improves performance
+            by avoiding the overhead of Bio.Seq objects at the cost of utility
+            functions in Bio.Seq. Only applicable when index_only is False.
+    
+    Returns:
+        ORF_seqs: dict or dict-like
+            The ORF sequences indexed by their name in the ORFs table.
+            Returns None if not found.
+    """
+    t = time()
+    
+    # Get unique sample and paths
+    sample = get_unique_sample_name(sample)
+    file_path = get_sample_paths(sample)["ORFs_fasta"]
+    
+    # Check if file exists
+    if not os.path.exists(file_path):
+        log("Could not find ORF sequences for sample %s in: %s" % (sample, file_path), verbosity_level=1)
+        return
+        
+    if index_only:
+        # Create file index
+        ORF_seqs = SeqIO.index(file_path, "fasta")
+        log("Indexed ORF sequences for sample %s." % sample, t, 2)
+    else:
+        # Read and parse file
+        ORF_seqs = SeqIO.to_dict(SeqIO.parse(file_path, "fasta"))
+        
+        # Downcast to strings
+        if convert_to_str:
+            for orf, seq in ORF_seqs.items():
+                ORF_seqs[orf] = str(seq.seq).upper()
+        
+        log("Read and parsed ORF sequences for sample %s." % sample, t, 2)
+    
+    return ORF_seqs
+
 def parse_ORFs(sample, overwrite=False):
     """ Parses the FASTA headers in the ORF FASTA file and saves the data.
     
     Args:
         sample: str
-            The name of the sample
+            Sample name or alias
         overwrite: boolean, default False
             If True, will overwrite saved ORF table, otherwise will attempt to
             load the table from cache.
@@ -419,7 +594,7 @@ def parse_ORFs(sample, overwrite=False):
     t = time()
     
     # Get unique sample and paths
-    sample = get_unique_sample(sample)
+    sample = get_unique_sample_name(sample)
     sample_paths = get_sample_paths(sample)
     
     # Check for cache
@@ -471,11 +646,22 @@ def parse_ORFs(sample, overwrite=False):
     return ORFs
     
 def get_ORFs(sample):
-    """ Loads the ORFs for a sample. """
+    """ Loads the ORFs table for a sample. See ``parse_orfs()`` to create an
+    ORFs table for a sample.
+    
+    Args:
+        sample: str
+            Sample name or alias
+            
+    Returns:
+        ORFs: DataFrame
+            Table with a listing and information about each ORF predicted in
+            the sample.
+    """
     t = time()
     
     # Get unique sample and paths
-    sample = get_unique_sample(sample)
+    sample = get_unique_sample_name(sample)
     sample_paths = get_sample_paths(sample)
     
     # Check for cache
@@ -483,7 +669,8 @@ def get_ORFs(sample):
         ORFs = pd.read_csv(sample_paths["ORFs"], index_col=0)
         log("Loaded %d cached ORFs from %s." % (ORFs.shape[0], sample), t, 2)
         return ORFs
-    
+
+#%% Operons
 def predict_operons(sample, overwrite=False):
     """ Predicts operons for the given sample. 
     
@@ -564,7 +751,16 @@ def predict_operons(sample, overwrite=False):
     return operons
 
 def get_operons(sample):
-    """ Returns the operons for a sample if it exists. """
+    """ Returns the operons for a sample if it exists. 
+    
+    Args:
+        sample: str
+            Sample name or alias
+            
+    Returns:
+        operons: DataFrame
+            Table with listing of predicted operons for a sample.
+    """
     
     # Get path
     operons_path = get_sample_paths(sample)["operons"]
@@ -579,8 +775,32 @@ def get_operons(sample):
         return predict_operons(sample)
 
 def get_genes2operon(genes, operons):
-    """ Returns a series that maps gene names to the operons they belong. """
+    """ Returns a Series that maps gene names to the operons they belong to. 
+    
+    Args:
+        genes: DataFrame
+            See ``get_genes()``.
+        operons: DataFrame
+            See ``get_operons()``.
+        
+    Returns:
+        genes2operon: Series
+            Operon numbers indexed by the gene names.
+        """
     return pd.Series(index=np.hstack(operons.genes), data=np.repeat(operons.index.values, operons.genes.map(len)))
+
+#%% BLASTing
+def get_bash_array(samples):
+    """ Returns a bash array of the samples.
+    
+    Args:
+        samples: list
+            List of sample names.
+    
+    Returns:
+        bash_array: str
+            A formatted bash array containing all samples names as strings."""
+    return 'samples=("' + '" "'.join(samples) + '")'
 
 #%% PSSM scoring
 def score_sample(sample, PSSM, overwrite=False, soft_max=False):
@@ -593,10 +813,14 @@ def score_sample(sample, PSSM, overwrite=False, soft_max=False):
             PSSM to use for scoring
         overwrite: bool, default False
             If False, will load cached scores from disk
+            
+    Returns:
+        scores: DataFrame
+            The scores for the sample
         """
         
     # Validate sample name
-    sample = get_unique_sample(sample)
+    sample = get_unique_sample_name(sample)
     
     # Get data file path
     pssm_scores_path = scores_path + PSSM.name + "/"
@@ -644,7 +868,7 @@ def get_scores_path(sample, PSSM_name):
         PSSM_name = PSSM_name.name
     
     # Validate sample name
-    sample = get_unique_sample(sample)
+    sample = get_unique_sample_name(sample)
     
     # Get data file path
     pssm_scores_path = scores_path + PSSM_name + "/"
@@ -666,7 +890,7 @@ def get_sample_scores(sample, PSSM_name, soft_max=True):
     t = time()
     scores = pd.read_hdf(sample_scores_path, "table")
     
-    # Take soct max
+    # Take soft max
     if soft_max:
         scores = scores.applymap(np.exp).sum(1).map(np.log)
     
@@ -686,7 +910,7 @@ def get_all_with_scores(PSSM_name):
 
 #%% Summary stats
 def get_sample_summary(sample, PSSM):
-    sample = get_unique_sample(sample)
+    sample = get_unique_sample_name(sample)
     
     # Load sample data
     genes = load_sample_genes(sample)
@@ -725,7 +949,7 @@ def get_sample_summary(sample, PSSM):
 
 def get_samples_summary(samples="all", PSSM=Firmicutes_LexA):
     if samples == "all":
-        samples = get_valid_samples()
+        samples = get_all_samples()
         
     stats = pd.Series(samples).apply(lambda x: get_sample_summary(x, PSSM))
     stats.index = samples

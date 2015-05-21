@@ -88,7 +88,8 @@ print "LexA prob (all):", probs.post_prob.loc[lexa_cog]
 def plot_scores(scores):
     plt.figure()
     for x in scores:
-        plt.plot(x)
+        plt.plot(range(len(x)), x, 'o')
+        #plt.scatter(range(len(x)), x)
     plt.ylim(ymin=0)
     plt.legend(scores.index)
     plt.title("Scores for promoters of operons with LexA in sample %s" % sample)

@@ -124,9 +124,9 @@ plot_scores(lexa_scores)
 plot_operons(lexa_operons)
 
 #%% Pull out sequences
-lexa_seqs = {gene_name: str(ORF_seqs[gene_name].seq) for gene_name in lexa_gene_names}
-fasta_file = open("LexA_seqs-Gamma-%s.fa" % sample, "w")
-for gene_name, seq in lexa_seqs.items():
-    print >>fasta_file, ">" + gene_name
-    print >>fasta_file, seq
-fasta_file.close()
+#lexa_seqs = {gene_name: str(ORF_seqs[gene_name].seq) for gene_name in lexa_gene_names}
+#fasta_file = open("LexA_seqs-Gamma-%s.fa" % sample, "w")
+#for gene_name, seq in lexa_seqs.items():
+#    print >>fasta_file, ">" + gene_name
+#    print >>fasta_file, seq
+#fasta_file.close()
